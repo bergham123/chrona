@@ -5,48 +5,410 @@ export const HTML_PAGE = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chrona - مدير المهام</title>
     <style>
+        :root {
+            --primary: #378ADD;
+            --primary-dark: #185FA5;
+            --accent-teal: #1D9E75;
+            --accent-coral: #D85A30;
+            --accent-amber: #BA7517;
+            --accent-purple: #7F77DD;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666;
+            --text-muted: #999;
+            --bg-light: #fafbfc;
+            --bg-lighter: #f0f3f7;
+            --border-light: #e0e0e0;
+            --surface: #ffffff;
+        }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f5f7fb; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 12px; margin-bottom: 24px; }
-        .form-group { margin-bottom: 16px; }
-        label { display: block; font-weight: 600; margin-bottom: 4px; color: #34495e; }
-        input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { background: #3498db; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        button:hover { background: #2980b9; }
-        button.danger { background: #e74c3c; }
-        button.danger:hover { background: #c0392b; }
-        button.success { background: #2ecc71; }
-        button.success:hover { background: #27ae60; }
-        button.warning { background: #f39c12; }
-        button.warning:hover { background: #e67e22; }
-        .flex { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .task-item { background: #f8f9fa; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; border-right: 4px solid #3498db; }
-        .task-item .title { font-weight: bold; font-size: 18px; }
-        .task-item .desc { color: #555; margin: 6px 0; }
-        .task-item .meta { font-size: 14px; color: #888; display: flex; gap: 16px; flex-wrap: wrap; }
-        .task-item .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
-        .task-item .status { display: inline-block; padding: 2px 12px; border-radius: 20px; font-size: 13px; background: #ecf0f1; }
-        .status.pending { background: #f1c40f; color: #7d6608; }
-        .status.in-progress { background: #3498db; color: #fff; }
-        .status.completed { background: #2ecc71; color: #fff; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
+            background: var(--bg-light); 
+            padding: 20px;
+            color: var(--text-primary);
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: var(--surface); 
+            border-radius: 12px; 
+            padding: 32px;
+            border: 1px solid var(--border-light);
+        }
+        
+        h1 { 
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary); 
+            margin-bottom: 32px;
+            letter-spacing: -0.5px;
+        }
+        
+        h2 { 
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+        
+        h3 { 
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        .form-group { 
+            margin-bottom: 18px; 
+        }
+        
+        label { 
+            display: block; 
+            font-weight: 500; 
+            margin-bottom: 6px; 
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        input, textarea, select { 
+            width: 100%; 
+            padding: 12px 14px; 
+            border: 1px solid var(--border-light); 
+            border-radius: 8px; 
+            font-size: 15px;
+            transition: all 0.2s;
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+        
+        input:hover, textarea:hover, select:hover { 
+            border-color: var(--primary);
+            background: var(--bg-lighter);
+        }
+        
+        input:focus, textarea:focus, select:focus { 
+            outline: none;
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.1);
+        }
+        
+        button { 
+            background: var(--primary); 
+            color: #fff; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        button:hover { 
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        button:active { 
+            transform: translateY(0);
+        }
+        
+        button.danger { 
+            background: var(--danger); 
+        }
+        
+        button.danger:hover { 
+            background: #c0392b;
+        }
+        
+        button.success { 
+            background: var(--success); 
+        }
+        
+        button.success:hover { 
+            background: #27ae60;
+        }
+        
+        button.warning { 
+            background: var(--warning); 
+        }
+        
+        button.warning:hover { 
+            background: #e67e22;
+        }
+        
+        .flex { 
+            display: flex; 
+            gap: 16px; 
+            flex-wrap: wrap; 
+            align-items: center;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: var(--bg-lighter);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(55, 138, 221, 0.1);
+        }
+        
+        .task-item { 
+            background: var(--bg-lighter);
+            border-radius: 10px; 
+            padding: 16px; 
+            margin-bottom: 16px; 
+            border-left: 4px solid var(--primary);
+            transition: all 0.2s;
+        }
+        
+        .task-item:hover {
+            border-left-color: var(--accent-teal);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .task-item .title { 
+            font-weight: 600; 
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        
+        .task-item .desc { 
+            color: var(--text-secondary); 
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        
+        .task-item .meta { 
+            font-size: 13px; 
+            color: var(--text-muted); 
+            display: flex; 
+            gap: 16px; 
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+        
+        .task-item .actions { 
+            margin-top: 12px; 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap;
+        }
+        
+        .task-item .status { 
+            display: inline-block; 
+            padding: 4px 12px; 
+            border-radius: 6px; 
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--bg-light);
+            color: var(--text-secondary);
+        }
+        
+        .status.pending { 
+            background: #FEF3C7;
+            color: #92400e;
+        }
+        
+        .status.in-progress { 
+            background: #DBEAFE;
+            color: var(--primary-dark);
+        }
+        
+        .status.completed { 
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
         .hidden { display: none; }
-        .alert { padding: 12px; border-radius: 8px; margin-bottom: 16px; }
-        .alert.error { background: #fde0e0; color: #c0392b; border: 1px solid #e74c3c; }
-        .alert.success { background: #d5f5e3; color: #1e8449; border: 1px solid #2ecc71; }
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; flex-wrap: wrap; }
-        .tabs button { background: transparent; color: #7f8c8d; border: none; padding: 8px 16px; font-weight: 600; cursor: pointer; }
-        .tabs button.active { color: #3498db; border-bottom: 3px solid #3498db; }
+        
+        .alert { 
+            padding: 14px 16px; 
+            border-radius: 10px; 
+            margin-bottom: 20px;
+            border-left: 4px solid;
+            font-size: 14px;
+        }
+        
+        .alert.error { 
+            background: #FEE2E2;
+            color: #7F1D1D;
+            border-left-color: var(--danger);
+        }
+        
+        .alert.success { 
+            background: #D1FAE5;
+            color: #065F46;
+            border-left-color: var(--success);
+        }
+        
+        .tabs { 
+            display: flex; 
+            gap: 0; 
+            margin-bottom: 24px; 
+            border-bottom: 2px solid var(--border-light); 
+            padding-bottom: 0;
+            flex-wrap: wrap;
+        }
+        
+        .tabs button { 
+            background: transparent; 
+            color: var(--text-secondary); 
+            border: none; 
+            padding: 14px 20px; 
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+        
+        .tabs button:hover {
+            color: var(--text-primary);
+            border-bottom-color: var(--border-light);
+        }
+        
+        .tabs button.active { 
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .logout-btn { float: left; background: #e67e22; }
-        .logout-btn:hover { background: #d35400; }
-        .stat-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; background: #ecf0f1; margin-left: 8px; }
-        .color-preview { display: inline-block; width: 20px; height: 20px; border-radius: 4px; vertical-align: middle; margin-right: 8px; }
-        .admin-user-item { border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        #notifyVia label { display: inline-block; margin-left: 16px; }
-        .checkbox-group label { display: inline-block; margin-left: 12px; }
-        input[type="color"] { width: 60px; height: 40px; padding: 2px; }
+        
+        .logout-btn { 
+            background: var(--accent-coral);
+        }
+        
+        .logout-btn:hover { 
+            background: #B84621;
+        }
+        
+        .stat-badge { 
+            display: inline-block; 
+            padding: 6px 14px; 
+            border-radius: 6px; 
+            background: var(--bg-lighter);
+            color: var(--text-secondary);
+            margin-left: 12px;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .color-preview { 
+            display: inline-block; 
+            width: 20px; 
+            height: 20px; 
+            border-radius: 4px; 
+            vertical-align: middle; 
+            margin-right: 8px;
+            border: 1px solid var(--border-light);
+        }
+        
+        .admin-user-item { 
+            border: 1px solid var(--border-light); 
+            border-radius: 10px; 
+            padding: 14px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap;
+            background: var(--bg-lighter);
+            transition: all 0.2s;
+        }
+        
+        .admin-user-item:hover {
+            border-color: var(--primary);
+        }
+        
+        #notifyVia label { 
+            display: inline-block; 
+            margin-right: 16px;
+            margin-left: 0;
+        }
+        
+        .checkbox-group label { 
+            display: inline-block; 
+            margin-right: 12px;
+            margin-left: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        
+        input[type="color"] { 
+            width: 60px; 
+            height: 40px; 
+            padding: 2px;
+            cursor: pointer;
+        }
+        
+        .auth-card {
+            max-width: 400px;
+            margin: 40px auto;
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 32px;
+        }
+        
+        .form-section {
+            background: var(--bg-lighter);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        
+        button.secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        button.secondary:hover {
+            background: rgba(55, 138, 221, 0.05);
+        }
+        
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        hr { 
+            border: none;
+            border-top: 1px solid var(--border-light);
+            margin: 24px 0;
+        }
     </style>
 </head>
 <body>
@@ -56,110 +418,128 @@ export const HTML_PAGE = `<!DOCTYPE html>
     <!-- أقسام المصادقة -->
     <div id="authSection">
         <div class="tabs">
-            <button class="active" data-tab="loginTab">تسجيل الدخول</button>
-            <button data-tab="registerTab">إنشاء حساب</button>
-            <button data-tab="resetTab">نسيت كلمة المرور</button>
+            <button class="active" data-tab="loginTab">🔐 تسجيل الدخول</button>
+            <button data-tab="registerTab">✨ إنشاء حساب</button>
+            <button data-tab="resetTab">🔑 نسيت كلمة المرور</button>
         </div>
+        
         <div id="loginTab" class="tab-content active">
-            <div id="loginError" class="alert error hidden"></div>
-            <div class="form-group">
-                <label>اسم المستخدم</label>
-                <input type="text" id="loginUsername" placeholder="أدخل اسم المستخدم">
+            <div class="form-section">
+                <div id="loginError" class="alert error hidden"></div>
+                <div class="form-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="loginUsername" placeholder="أدخل اسم المستخدم">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور">
+                </div>
+                <button id="loginBtn" style="width: 100%; padding: 14px;">دخول</button>
             </div>
-            <div class="form-group">
-                <label>كلمة المرور</label>
-                <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور">
-            </div>
-            <button id="loginBtn">دخول</button>
         </div>
+        
         <div id="registerTab" class="tab-content">
-            <div id="registerError" class="alert error hidden"></div>
-            <div class="form-group">
-                <label>اسم المستخدم</label>
-                <input type="text" id="regUsername" placeholder="اختر اسم مستخدم (3 أحرف على الأقل)">
-            </div>
-            <div class="form-group">
-                <label>كلمة المرور</label>
-                <input type="password" id="regPassword" placeholder="اختر كلمة مرور (6 أحرف على الأقل)">
-            </div>
-            <div class="form-group">
-                <label>معرف تيليجرام (للتفعيل)</label>
-                <input type="text" id="regTelegram" placeholder="أدخل معرفك في تيليجرام (chat_id)">
-            </div>
-            <button id="registerBtn">تسجيل</button>
-            <div id="verifySection" class="hidden" style="margin-top: 16px;">
-                <h4>تفعيل الحساب</h4>
+            <div class="form-section">
+                <div id="registerError" class="alert error hidden"></div>
                 <div class="form-group">
-                    <label>رمز التفعيل</label>
-                    <input type="text" id="verifyCode" placeholder="أدخل الرمز المرسل إلى تيليجرام">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="regUsername" placeholder="اختر اسم مستخدم (3 أحرف على الأقل)">
                 </div>
-                <button id="verifyBtn">تفعيل</button>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="regPassword" placeholder="اختر كلمة مرور (6 أحرف على الأقل)">
+                </div>
+                <div class="form-group">
+                    <label>معرف تيليجرام (للتفعيل)</label>
+                    <input type="text" id="regTelegram" placeholder="أدخل معرفك في تيليجرام (chat_id)">
+                </div>
+                <button id="registerBtn" style="width: 100%; padding: 14px;">تسجيل</button>
+            </div>
+            <div id="verifySection" class="hidden">
+                <div class="form-section">
+                    <h3>تفعيل الحساب</h3>
+                    <div class="form-group">
+                        <label>رمز التفعيل</label>
+                        <input type="text" id="verifyCode" placeholder="أدخل الرمز المرسل إلى تيليجرام">
+                    </div>
+                    <button id="verifyBtn" style="width: 100%; padding: 14px;">تفعيل</button>
+                </div>
             </div>
         </div>
+        
         <div id="resetTab" class="tab-content">
-            <div id="resetError" class="alert error hidden"></div>
-            <div class="form-group">
-                <label>اسم المستخدم أو معرف تيليجرام</label>
-                <input type="text" id="resetIdentifier" placeholder="أدخل اسم المستخدم أو معرف تيليجرام">
+            <div class="form-section">
+                <div id="resetError" class="alert error hidden"></div>
+                <div class="form-group">
+                    <label>اسم المستخدم أو معرف تيليجرام</label>
+                    <input type="text" id="resetIdentifier" placeholder="أدخل اسم المستخدم أو معرف تيليجرام">
+                </div>
+                <button id="resetRequestBtn" style="width: 100%; padding: 14px;">طلب إعادة تعيين</button>
             </div>
-            <button id="resetRequestBtn">طلب إعادة تعيين</button>
-            <div id="resetPasswordSection" class="hidden" style="margin-top: 16px;">
-                <div class="form-group">
-                    <label>رمز التحقق</label>
-                    <input type="text" id="resetCode" placeholder="أدخل الرمز المرسل">
+            <div id="resetPasswordSection" class="hidden">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>رمز التحقق</label>
+                        <input type="text" id="resetCode" placeholder="أدخل الرمز المرسل">
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة المرور الجديدة</label>
+                        <input type="password" id="resetNewPassword" placeholder="كلمة مرور جديدة">
+                    </div>
+                    <button id="resetConfirmBtn" style="width: 100%; padding: 14px;">تأكيد التغيير</button>
                 </div>
-                <div class="form-group">
-                    <label>كلمة المرور الجديدة</label>
-                    <input type="password" id="resetNewPassword" placeholder="كلمة مرور جديدة">
-                </div>
-                <button id="resetConfirmBtn">تأكيد التغيير</button>
             </div>
         </div>
     </div>
 
     <!-- قسم المهام -->
     <div id="tasksSection" class="hidden">
-        <div class="flex" style="justify-content: space-between;">
+        <div class="header-bar">
             <h2>مرحباً، <span id="displayUsername"></span></h2>
             <button id="logoutBtn" class="logout-btn">تسجيل خروج</button>
         </div>
-        <hr style="margin: 16px 0;">
 
         <!-- إضافة مهمة -->
-        <div style="background: #f0f4f8; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+        <div class="form-section" style="margin-bottom: 32px;">
             <h3>➕ إضافة مهمة جديدة</h3>
-            <div class="form-group">
-                <label>عنوان المهمة</label>
-                <input type="text" id="taskTitle" placeholder="أدخل عنوان المهمة">
-            </div>
-            <div class="form-group">
-                <label>وصف (اختياري)</label>
-                <textarea id="taskDesc" rows="2" placeholder="وصف المهمة"></textarea>
-            </div>
-            <div class="form-group">
-                <label>📅 التاريخ</label>
-                <input type="date" id="taskDate" required>
-            </div>
-            <div class="form-group">
-                <label>🕐 وقت البدء</label>
-                <input type="time" id="taskTime" value="08:00">
-            </div>
-            <div class="form-group">
-                <label>🕒 وقت الانتهاء (اختياري)</label>
-                <input type="time" id="taskEndTime">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <div class="form-group">
+                        <label>عنوان المهمة</label>
+                        <input type="text" id="taskTitle" placeholder="أدخل عنوان المهمة">
+                    </div>
+                    <div class="form-group">
+                        <label>وصف (اختياري)</label>
+                        <textarea id="taskDesc" rows="2" placeholder="وصف المهمة"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>📅 التاريخ</label>
+                        <input type="date" id="taskDate" required>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label>🕐 وقت البدء</label>
+                        <input type="time" id="taskTime" value="08:00">
+                    </div>
+                    <div class="form-group">
+                        <label>🕒 وقت الانتهاء (اختياري)</label>
+                        <input type="time" id="taskEndTime">
+                    </div>
+                    <div class="form-group">
+                        <label>⏰ تنبيه</label>
+                        <select id="taskAlert">
+                            <option value="now">فوري</option>
+                            <option value="10min">قبل 10 دقائق</option>
+                            <option value="1hour">قبل ساعة</option>
+                            <option value="1day">قبل يوم</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label>📝 ملاحظات</label>
                 <textarea id="taskNotes" rows="2" placeholder="ملاحظات إضافية"></textarea>
-            </div>
-            <div class="form-group">
-                <label>⏰ تنبيه</label>
-                <select id="taskAlert">
-                    <option value="now">فوري</option>
-                    <option value="10min">قبل 10 دقائق</option>
-                    <option value="1hour">قبل ساعة</option>
-                    <option value="1day">قبل يوم</option>
-                </select>
             </div>
             <div class="form-group" id="notifyVia">
                 <label>📢 وسائل التنبيه</label>
@@ -181,11 +561,11 @@ export const HTML_PAGE = `<!DOCTYPE html>
                     <option value="other">أخرى</option>
                 </select>
             </div>
-            <button id="addTaskBtn" class="success">إضافة</button>
+            <button id="addTaskBtn" class="success" style="width: 100%; padding: 14px;">إضافة مهمة</button>
         </div>
 
         <!-- إحصائيات سريعة -->
-        <div id="statsBar" style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;"></div>
+        <div id="statsBar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 32px; flex-wrap: wrap;"></div>
 
         <!-- التبويبات -->
         <div class="tabs">
@@ -201,21 +581,29 @@ export const HTML_PAGE = `<!DOCTYPE html>
 
         <!-- المهام حسب التاريخ -->
         <div id="jobsTab" class="tab-content">
-            <div class="flex">
-                <input type="date" id="datePicker">
-                <button id="getJobsBtn">عرض المهام</button>
+            <div class="form-section" style="margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>اختر التاريخ</label>
+                        <input type="date" id="datePicker">
+                    </div>
+                    <button id="getJobsBtn" style="padding: 12px 24px;">🔍 عرض المهام</button>
+                </div>
             </div>
             <div id="jobsResult"></div>
         </div>
 
         <!-- لوحة المشرف -->
         <div id="adminTab" class="tab-content">
-            <h3>🔧 لوحة تحكم المشرف</h3>
-            <button id="adminRefreshBtn" class="success" style="margin-bottom: 12px;">تحديث</button>
-            <h4>👥 المستخدمون</h4>
-            <div id="adminUsersList"></div>
-            <hr>
-            <h4>📋 جميع المهام</h4>
+            <div class="section-header">
+                <h3>🔧 لوحة تحكم المشرف</h3>
+                <button id="adminRefreshBtn" class="success" style="padding: 12px 20px;">🔄 تحديث</button>
+            </div>
+            
+            <h3 style="margin-top: 28px; margin-bottom: 16px;">👥 المستخدمون</h3>
+            <div id="adminUsersList" style="margin-bottom: 32px;"></div>
+            
+            <h3 style="margin-top: 28px; margin-bottom: 16px;">📋 جميع المهام</h3>
             <div id="adminAllTasks"></div>
         </div>
     </div>
