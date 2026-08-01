@@ -1,18 +1,13 @@
-name = "chrona-worker"
+name = "chrona"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
-# ============================================
-# KV Namespace (اختياري للتخزين المؤقت)
-# ============================================
 # [[kv_namespaces]]
-# binding = "CHRONA_CACHE"
-# id = "your-kv-namespace-id"  # استبدل بالمعرف الفعلي
+# binding = "VERIFICATION_KV"
+# id = "your-kv-id"   # استبدل بالمعرف الفعلي
 
-# ============================================
-# المتغيرات البيئية
-# ============================================
 [vars]
 GITHUB_OWNER = "bergham123"
 GITHUB_REPO = "chrona"
 GITHUB_BRANCH = "main"
+ADMIN_USERNAME = "mohammed"   # المستخدم الذي سيكون مشرفاً
