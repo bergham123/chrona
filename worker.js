@@ -6,12 +6,19 @@ import { HTML_PAGE } from './src/app.js';
 import {
     handleRegister,
     handleLogin,
+    handleVerify,
+    handleRequestReset,
+    handleResetPassword,
     handleGetTasks,
     handleCreateTask,
     handleUpdateTask,
     handleDeleteTask,
     handleGetJobsByDate,
     handleGetDashboard,
+    handleAdminGetUsers,
+    handleAdminDeleteUser,
+    handleAdminToggleAdmin,
+    handleAdminGetAllTasks,
 } from './src/handlers.js';
 import { jsonResponse } from './src/helpers.js';
 
@@ -21,7 +28,7 @@ export default {
         const path = url.pathname;
         const method = request.method;
 
-        // معالجة طلبات CORS
+        // CORS
         if (method === "OPTIONS") {
             return new Response(null, {
                 headers: {
@@ -40,64 +47,68 @@ export default {
                 });
             }
 
-            // ===== مسارات API العامة =====
+            // ===== مسارات المصادقة العامة =====
+            if (path === '/auth/register' && method === 'POST') return handleRegister(request, env);
+            if (path === '/auth/login' && method === 'POST') return handleLogin(request, env);
+            if (path === '/auth/verify' && method === 'POST') return handleVerify(request, env);
+            if (path === '/auth/reset-request' && method === 'POST') return handleRequestReset(request, env);
+            if (path === '/auth/reset' && method === 'POST') return handleResetPassword(request, env);
 
-            // POST /auth/register
-            if (path === '/auth/register' && method === 'POST') {
-                return await handleRegister(request, env);
-            }
-
-            // POST /auth/login
-            if (path === '/auth/login' && method === 'POST') {
-                return await handleLogin(request, env);
-            }
-
-            // ===== مسارات API المحمية (تتطلب X-Username) =====
+            // ===== المهام (تتطلب X-Username) =====
             const username = request.headers.get('X-Username');
-            if (!username && (path.startsWith('/tasks') || path.startsWith('/dashboard'))) {
+            if (!username && (path.startsWith('/tasks') || path.startsWith('/dashboard') || path.startsWith('/admin'))) {
                 return jsonResponse({ error: 'الرجاء تسجيل الدخول أولاً' }, 401);
             }
 
-            // GET /tasks
-            if (path === '/tasks' && method === 'GET') {
-                return await handleGetTasks(request, env, username);
-            }
-
-            // POST /tasks
-            if (path === '/tasks' && method === 'POST') {
-                return await handleCreateTask(request, env, username);
-            }
-
-            // PUT /tasks/:id
+            // مسارات المهام
+            if (path === '/tasks' && method === 'GET') return handleGetTasks(request, env, username);
+            if (path === '/tasks' && method === 'POST') return handleCreateTask(request, env, username);
             if (path.startsWith('/tasks/') && method === 'PUT') {
                 const taskId = path.split('/')[2];
-                return await handleUpdateTask(request, env, username, taskId);
+                return handleUpdateTask(request, env, username, taskId);
             }
-
-            // DELETE /tasks/:id
             if (path.startsWith('/tasks/') && method === 'DELETE') {
                 const taskId = path.split('/')[2];
-                return await handleDeleteTask(request, env, username, taskId);
+                return handleDeleteTask(request, env, username, taskId);
             }
 
-            // GET /jobs/:date (عام، لا يحتاج مصادقة)
+            // المهام حسب التاريخ
             if (path.startsWith('/jobs/') && method === 'GET') {
                 const date = path.split('/')[2];
-                return await handleGetJobsByDate(request, env, date);
+                return handleGetJobsByDate(request, env, date);
             }
 
-            // GET /dashboard/:username (عام)
+            // لوحة تحكم المستخدم
             if (path.startsWith('/dashboard/') && method === 'GET') {
                 const user = path.split('/')[2];
-                return await handleGetDashboard(request, env, user);
+                return handleGetDashboard(request, env, user);
             }
 
-            // ===== 404 =====
-            return jsonResponse({ error: 'المسار غير موجود' }, 404);
+            // ===== مسارات المشرف (تتطلب صلاحية) =====
+            if (path.startsWith('/admin/')) {
+                // التحقق من صلاحية المشرف
+                const users = await import('./src/handlers.js').then(m => m.getAllUsers(env));
+                const user = users[username];
+                if (!user || !user.isAdmin) {
+                    return jsonResponse({ error: 'غير مصرح به' }, 403);
+                }
 
+                if (path === '/admin/users' && method === 'GET') return handleAdminGetUsers(request, env);
+                if (path.startsWith('/admin/users/') && method === 'DELETE') {
+                    const userToDelete = path.split('/')[3];
+                    return handleAdminDeleteUser(request, env, userToDelete);
+                }
+                if (path.startsWith('/admin/users/') && path.endsWith('/admin') && method === 'PUT') {
+                    const userToToggle = path.split('/')[3];
+                    return handleAdminToggleAdmin(request, env, userToToggle);
+                }
+                if (path === '/admin/tasks' && method === 'GET') return handleAdminGetAllTasks(request, env);
+            }
+
+            return jsonResponse({ error: 'المسار غير موجود' }, 404);
         } catch (error) {
             console.error('❌ Error:', error);
-            return jsonResponse({ error: error.message || 'خطأ داخلي في الخادم' }, 500);
+            return jsonResponse({ error: error.message || 'خطأ داخلي' }, 500);
         }
     },
 };
