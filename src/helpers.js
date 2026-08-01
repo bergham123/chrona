@@ -38,7 +38,7 @@ export function formatDateToDDMMYY(dateStr) {
   return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
 }
 
-// العكس: من DD-MM-YY إلى YYYY-MM-DD (للفهرسة)
+// تحويل DD-MM-YY إلى YYYY-MM-DD
 export function parseDDMMYYtoYYYYMMDD(dateStr) {
   const parts = dateStr.split("-");
   if (parts.length !== 3) return dateStr;
@@ -49,7 +49,7 @@ export function getToday() {
   return new Date().toISOString().split("T")[0];
 }
 
-// دوال التحقق
+// دوال التحقق من صحة المدخلات
 export function validateUsername(username) {
   if (!username || typeof username !== "string") return "اسم المستخدم مطلوب";
   if (username.length < 3) return "اسم المستخدم يجب أن يكون 3 أحرف على الأقل";
@@ -69,12 +69,12 @@ export function validateTaskTitle(title) {
   return null;
 }
 
-// توليد رمز تحقق
+// توليد رمز تحقق عشوائي
 export function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// تخزين الرمز في KV
+// تخزين واسترجاع الرمز من KV
 export async function storeVerificationCode(env, username, code) {
   await env.VERIFICATION_KV.put(`code:${username}`, code, { expirationTtl: 600 });
 }
@@ -85,4 +85,16 @@ export async function getVerificationCode(env, username) {
 
 export async function deleteVerificationCode(env, username) {
   await env.VERIFICATION_KV.delete(`code:${username}`);
+}
+
+// إرسال رسالة تيليجرام (دالة مساعدة)
+export async function sendTelegramMessage(env, chatId, text) {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  if (!token) return;
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text }),
+  });
 }
