@@ -3,5 +3,13 @@
     "username": "mohammed",
     "passwordHash": "7e4429714c408158893aa06262c3391083306fd7072f4f65576d77d50f40cb6c",
     "createdAt": "2026-08-01T20:27:11.079Z"
+  },
+  "hamada": {
+    "username": "hamada",
+    "passwordHash": "932f3c1b56257ce8539ac269d7aab42550dacf8818d075f0bdf1990562aae3ef",
+    "telegramId": "5798206513",
+    "createdAt": "2026-08-01T21:05:36.592Z",
+    "isActive": false,
+    "isAdmin": false
   }
 }
