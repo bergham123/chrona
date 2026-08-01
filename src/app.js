@@ -506,7 +506,7 @@ export const HTML_PAGE = `<!DOCTYPE html>
             users.forEach(u => {
                 usersHtml += \`
                     <div class="admin-user-item">
-                        <span><strong>\${u.username}</strong> \${u.isAdmin ? '👑' : ''} ${u.isActive ? '✅' : '❌'}</span>
+                        <span><strong>\${u.username}</strong> \${u.isAdmin ? '👑' : ''} \${u.isActive ? '✅' : '❌'}</span>
                         <span>تيليجرام: \${u.telegramId}</span>
                         <span>تاريخ: \${new Date(u.createdAt).toLocaleDateString()}</span>
                         <div>
