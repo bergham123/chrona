@@ -23,6 +23,10 @@ import {
 } from './src/handlers.js';
 import { jsonResponse } from './src/helpers.js';
 
+// روابط ملفات GitHub
+const GITHUB_CSS_URL = 'https://raw.githubusercontent.com/bergham123/style-js/refs/heads/main/chroma/style.css';
+const GITHUB_JS_URL = 'https://raw.githubusercontent.com/bergham123/style-js/refs/heads/main/chroma/script.js';
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -40,18 +44,46 @@ export default {
         }
 
         try {
+            // ===== Proxy لملفات الـ CSS و JS من GitHub =====
+            if (path === '/assets/style.css' && method === 'GET') {
+                const res = await fetch(GITHUB_CSS_URL);
+                if (!res.ok) return jsonResponse({ error: 'Failed to fetch CSS' }, 502);
+                const cssText = await res.text();
+                return new Response(cssText, {
+                    headers: { 
+                        'Content-Type': 'text/css; charset=utf-8',
+                        'Cache-Control': 'public, max-age=3600' // تخزين مؤقت لمدة ساعة
+                    },
+                });
+            }
+
+            if (path === '/assets/script.js' && method === 'GET') {
+                const res = await fetch(GITHUB_JS_URL);
+                if (!res.ok) return jsonResponse({ error: 'Failed to fetch JS' }, 502);
+                const jsText = await res.text();
+                return new Response(jsText, {
+                    headers: { 
+                        'Content-Type': 'application/javascript; charset=utf-8',
+                        'Cache-Control': 'public, max-age=3600' // تخزين مؤقت لمدة ساعة
+                    },
+                });
+            }
+
+            // ===== HTML الصفحة الرئيسية =====
             if ((path === '/' || path === '/ui') && method === 'GET') {
                 return new Response(HTML_PAGE, {
                     headers: { 'Content-Type': 'text/html; charset=utf-8' },
                 });
             }
 
+            // ===== مسارات المصادقة =====
             if (path === '/auth/register' && method === 'POST') return handleRegister(request, env);
             if (path === '/auth/login' && method === 'POST') return handleLogin(request, env);
             if (path === '/auth/verify' && method === 'POST') return handleVerify(request, env);
             if (path === '/auth/reset-request' && method === 'POST') return handleRequestReset(request, env);
             if (path === '/auth/reset' && method === 'POST') return handleResetPassword(request, env);
 
+            // ===== مسارات محمية =====
             const username = request.headers.get('X-Username');
             if (!username && (path.startsWith('/events') || path.startsWith('/dashboard') || path.startsWith('/admin'))) {
                 return jsonResponse({ error: 'Authentication required' }, 401);
@@ -80,6 +112,7 @@ export default {
                 return handleGetDashboard(request, env, user);
             }
 
+            // ===== مسارات المشرف =====
             if (path.startsWith('/admin/')) {
                 const users = await getAllUsers(env);
                 const user = users[username];
