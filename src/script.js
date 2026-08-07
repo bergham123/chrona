@@ -2,10 +2,10 @@
 // src/script.js
 // ================================================================
 
-(() => {
+export const JS_CODE = `(() => {
   'use strict';
   const $ = (s, r=document) => r.querySelector(s), $$ = (s,r=document) => [...r.querySelectorAll(s)];
-  const pad=n=>String(n).padStart(2,'0'), iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const pad=n=>String(n).padStart(2,'0'), iso=d=>\`\${d.getFullYear()}-\${pad(d.getMonth()+1)}-\${pad(d.getDate())}\`;
   const parseDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
   const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
   const startWeek=d=>addDays(d,-((d.getDay()+6)%7));
@@ -154,7 +154,7 @@
     saveUIState();
     const d = parseDate(state.cursor);
     $('#themeIcon').textContent = state.theme === 'dark' ? '☀' : '☾';
-    $('#periodTitle').textContent = state.view === 'month' ? fmt(d, { month: 'long', year: 'numeric' }) : state.view === 'week' ? `${fmt(startWeek(d), { month: 'short', day: 'numeric' })} – ${fmt(addDays(startWeek(d), 6), { month: 'short', day: 'numeric', year: 'numeric' })}` : fmt(d, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    $('#periodTitle').textContent = state.view === 'month' ? fmt(d, { month: 'long', year: 'numeric' }) : state.view === 'week' ? \`\${fmt(startWeek(d), { month: 'short', day: 'numeric' })} – \${fmt(addDays(startWeek(d), 6), { month: 'short', day: 'numeric', year: 'numeric' })}\` : fmt(d, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
     renderSwitchers();
     renderMini();
     renderCalendars();
@@ -163,7 +163,7 @@
   }
 
   function renderSwitchers() {
-    const html = ['month', 'week', 'day', 'agenda'].map(v => `<button class="view-btn ${state.view === v ? 'active' : ''}" data-action="view" data-view="${v}">${v[0].toUpperCase() + v.slice(1)}</button>`).join('');
+    const html = ['month', 'week', 'day', 'agenda'].map(v => \`<button class="view-btn \${state.view === v ? 'active' : ''}" data-action="view" data-view="\${v}">\${v[0].toUpperCase() + v.slice(1)}</button>\`).join('');
     $('#viewSwitcher').innerHTML = html;
     $('#mobileViewSwitcher').innerHTML = html;
   }
@@ -173,13 +173,13 @@
     let days = '';
     for (let i = 0; i < 42; i++) {
       const x = addDays(start, i);
-      days += `<button data-action="day" data-date="${iso(x)}" class="mini-day ${sameDay(x, new Date()) ? 'is-today' : ''} ${iso(x) === state.cursor ? 'is-selected' : ''} ${x.getMonth() !== d.getMonth() ? 'opacity-30' : ''}">${x.getDate()}</button>`;
+      days += \`<button data-action="day" data-date="\${iso(x)}" class="mini-day \${sameDay(x, new Date()) ? 'is-today' : ''} \${iso(x) === state.cursor ? 'is-selected' : ''} \${x.getMonth() !== d.getMonth() ? 'opacity-30' : ''}">\${x.getDate()}</button>\`;
     }
-    $('#miniCalendar').innerHTML = `<div class="mb-3 flex items-center justify-between"><span class="font-display text-sm font-bold">${fmt(d, { month: 'long', year: 'numeric' })}</span><div><button class="icon-btn !h-7 !min-w-7" data-action="prev">‹</button><button class="icon-btn !h-7 !min-w-7" data-action="next">›</button></div></div><div class="mini-grid mb-1 text-[9px] font-bold text-slate-400">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(x => `<div>${x}</div>`).join('')}</div><div class="mini-grid">${days}</div>`;
+    $('#miniCalendar').innerHTML = \`<div class="mb-3 flex items-center justify-between"><span class="font-display text-sm font-bold">\${fmt(d, { month: 'long', year: 'numeric' })}</span><div><button class="icon-btn !h-7 !min-w-7" data-action="prev">‹</button><button class="icon-btn !h-7 !min-w-7" data-action="next">›</button></div></div><div class="mini-grid mb-1 text-[9px] font-bold text-slate-400">\${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(x => \`<div>\${x}</div>\`).join('')}</div><div class="mini-grid">\${days}</div>\`;
   }
 
   function renderCalendars() {
-    $('#calendarList').innerHTML = '<p class="mb-3 px-3 text-[11px] font-bold uppercase tracking-[.18em] text-slate-400">My calendars</p>' + Object.entries(colors).map(([k, c]) => `<button class="cal-toggle ${state.visible[k] ? '' : 'off'}" data-action="toggle-cal" data-cal="${k}"><span class="dot" style="background:${c[0]}"></span><span class="flex-1 text-left capitalize">${k}</span><span>${state.visible[k] ? '✓' : '○'}</span></button>`).join('');
+    $('#calendarList').innerHTML = '<p class="mb-3 px-3 text-[11px] font-bold uppercase tracking-[.18em] text-slate-400">My calendars</p>' + Object.entries(colors).map(([k, c]) => \`<button class="cal-toggle \${state.visible[k] ? '' : 'off'}" data-action="toggle-cal" data-cal="\${k}"><span class="dot" style="background:\${c[0]}"></span><span class="flex-1 text-left capitalize">\${k}</span><span>\${state.visible[k] ? '✓' : '○'}</span></button>\`).join('');
   }
 
   function renderView() {
@@ -190,7 +190,7 @@
 
   function chip(e, i = 0) {
     const c = e.color ? [e.color, e.color + '22', e.color] : (colors[e.calendar] || colors.work);
-    return `<button data-action="event" data-id="${e.id}" class="event-chip" style="background:${c[1]};color:${c[2]};animation-delay:${i * 25}ms"><span class="mr-1 opacity-60">${e.start}</span>${esc(e.title)}</button>`;
+    return \`<button data-action="event" data-id="\${e.id}" class="event-chip" style="background:\${c[1]};color:\${c[2]};animation-delay:\${i * 25}ms"><span class="mr-1 opacity-60">\${e.start}</span>\${esc(e.title)}</button>\`;
   }
 
   function renderMonth() {
@@ -198,27 +198,27 @@
     let cells = '';
     for (let i = 0; i < 42; i++) {
       const x = addDays(start, i), dayEvents = events.filter(e => e.date === iso(x)).sort((a, b) => a.start.localeCompare(b.start));
-      cells += `<div class="month-cell ${x.getMonth() !== d.getMonth() ? 'outside' : ''} ${sameDay(x, new Date()) ? 'today' : ''}" data-action="new-event" data-date="${iso(x)}"><button class="day-num" data-action="day" data-date="${iso(x)}">${x.getDate()}</button>${dayEvents.slice(0, 3).map(chip).join('')}${dayEvents.length > 3 ? `<button class="more-chip" data-action="day" data-date="${iso(x)}">+${dayEvents.length - 3} more</button>` : ''}</div>`;
+      cells += \`<div class="month-cell \${x.getMonth() !== d.getMonth() ? 'outside' : ''} \${sameDay(x, new Date()) ? 'today' : ''}" data-action="new-event" data-date="\${iso(x)}"><button class="day-num" data-action="day" data-date="\${iso(x)}">\${x.getDate()}</button>\${dayEvents.slice(0, 3).map(chip).join('')}\${dayEvents.length > 3 ? \`<button class="more-chip" data-action="day" data-date="\${iso(x)}">+\${dayEvents.length - 3} more</button>\` : ''}</div>\`;
     }
-    $('#calendarView').innerHTML = `<div class="month-head">${['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(x => `<div>${x}</div>`).join('')}</div><div class="month-grid">${cells}</div>`;
+    $('#calendarView').innerHTML = \`<div class="month-head">\${['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(x => \`<div>\${x}</div>\`).join('')}</div><div class="month-grid">\${cells}</div>\`;
   }
 
   function renderTimeGrid() {
     const base = parseDate(state.cursor), days = state.view === 'day' ? [base] : Array.from({ length: 7 }, (_, i) => addDays(startWeek(base), i)), hours = Array.from({ length: 24 }, (_, i) => i);
-    let head = '<div></div>' + days.map(d => `<div class="week-day-head ${sameDay(d, new Date()) ? 'text-violet-500' : ''}"><div class="text-[10px] uppercase text-slate-400">${fmt(d, { weekday: 'short' })}</div><button data-action="day" data-date="${iso(d)}" class="font-display mt-1 text-lg font-bold">${d.getDate()}</button></div>`).join('');
+    let head = '<div></div>' + days.map(d => \`<div class="week-day-head \${sameDay(d, new Date()) ? 'text-violet-500' : ''}"><div class="text-[10px] uppercase text-slate-400">\${fmt(d, { weekday: 'short' })}</div><button data-action="day" data-date="\${iso(d)}" class="font-display mt-1 text-lg font-bold">\${d.getDate()}</button></div>\`).join('');
     let rows = '';
     hours.forEach(h => {
-      rows += `<div class="hour-label">${h === 0 ? '' : `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`}</div>`;
+      rows += \`<div class="hour-label">\${h === 0 ? '' : \`\${h % 12 || 12} \${h < 12 ? 'AM' : 'PM'}\`}</div>\`;
       days.forEach(d => {
         const ev = shownEvents().filter(e => e.date === iso(d) && Number(e.start.slice(0, 2)) === h);
-        rows += `<div class="hour-slot" data-action="new-event" data-date="${iso(d)}" data-time="${pad(h)}:00">${ev.map(e => {
+        rows += \`<div class="hour-slot" data-action="new-event" data-date="\${iso(d)}" data-time="\${pad(h)}:00">\${ev.map(e => {
           const c = e.color ? [e.color, e.color + '22', e.color] : colors[e.calendar];
           const mins = Number(e.start.slice(3));
-          return `<button data-action="event" data-id="${e.id}" class="week-event" style="top:${mins / 60 * 64}px;background:${c[1]};color:${c[2]}">${esc(e.title)}<br><span class="font-normal opacity-70">${e.start}</span></button>`;
-        }).join('')}</div>`;
+          return \`<button data-action="event" data-id="\${e.id}" class="week-event" style="top:\${mins / 60 * 64}px;background:\${c[1]};color:\${c[2]}">\${esc(e.title)}<br><span class="font-normal opacity-70">\${e.start}</span></button>\`;
+        }).join('')}</div>\`;
       });
     });
-    $('#calendarView').innerHTML = `<div class="week-wrap"><div class="week-grid" style="grid-template-columns:64px repeat(${days.length},minmax(${state.view === 'day' ? '500' : '110'}px,1fr))">${head}${rows}</div></div>`;
+    $('#calendarView').innerHTML = \`<div class="week-wrap"><div class="week-grid" style="grid-template-columns:64px repeat(\${days.length},minmax(\${state.view === 'day' ? '500' : '110'}px,1fr))">\${head}\${rows}</div></div>\`;
     setTimeout(() => { $('.week-wrap').scrollTop = 7 * 64; }, 0);
   }
 
@@ -230,15 +230,15 @@
     }
     let last = '';
     $('#calendarView').innerHTML = '<div class="agenda">' + events.map(e => {
-      const d = e.date !== last ? (last = e.date, `<div class="agenda-date">${fmt(parseDate(e.date), { weekday: 'long', month: 'long', day: 'numeric' })}</div>`) : '';
+      const d = e.date !== last ? (last = e.date, \`<div class="agenda-date">\${fmt(parseDate(e.date), { weekday: 'long', month: 'long', day: 'numeric' })}</div>\`) : '';
       const c = e.color ? [e.color, e.color + '22', e.color] : colors[e.calendar];
-      return `${d}<button class="agenda-card w-full text-left" data-action="event" data-id="${e.id}"><span class="h-11 w-1 rounded-full" style="background:${c[0]}"></span><span class="w-20 text-xs font-bold text-slate-400">${e.start}</span><span class="min-w-0 flex-1"><strong class="block truncate">${esc(e.title)}</strong><small class="text-slate-400">${esc(e.location || e.calendar)}</small></span><span class="text-slate-400">›</span></button>`;
+      return \`\${d}<button class="agenda-card w-full text-left" data-action="event" data-id="\${e.id}"><span class="h-11 w-1 rounded-full" style="background:\${c[0]}"></span><span class="w-20 text-xs font-bold text-slate-400">\${e.start}</span><span class="min-w-0 flex-1"><strong class="block truncate">\${esc(e.title)}</strong><small class="text-slate-400">\${esc(e.location || e.calendar)}</small></span><span class="text-slate-400">›</span></button>\`;
     }).join('') + '</div>';
   }
 
   function openEvent(event = {}) {
     const isEdit = !!event.id;
-    $('#modalRoot').innerHTML = `<div class="modal-backdrop"><form id="eventForm" class="modal-card"><div class="mb-6 flex items-start justify-between"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-violet-500">${isEdit ? 'Event details' : 'New moment'}</p><h2 class="font-display mt-1 text-2xl font-bold">${isEdit ? 'Edit event' : 'Create an event'}</h2></div><button type="button" class="icon-btn" data-close>✕</button></div><div class="space-y-4"><div><label class="field-label">Title</label><input class="field text-lg font-semibold" name="title" required autofocus value="${esc(event.title || '')}" placeholder="What’s happening?" /></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-3"><div><label class="field-label">Date</label><input class="field" type="date" name="date" required value="${event.date || state.cursor}" /></div><div><label class="field-label">Starts</label><input class="field" type="time" name="start" required value="${event.start || '09:00'}" /></div><div><label class="field-label">Ends</label><input class="field" type="time" name="end" required value="${event.end || '10:00'}" /></div></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-3"><div><label class="field-label">Calendar</label><select class="field capitalize" name="calendar">${Object.keys(colors).map(k => `<option ${event.calendar === k ? 'selected' : ''} value="${k}">${k}</option>`).join('')}</select></div><div><label class="field-label">Status</label><select class="field" name="status">${['pending', 'in-progress', 'completed'].map(k => `<option ${event.status === k ? 'selected' : ''} value="${k}">${k}</option>`).join('')}</select></div><div><label class="field-label">Repeat</label><select class="field" name="recurrence">${['none', 'daily', 'weekly', 'monthly', 'yearly'].map(k => `<option ${event.recurrence === k ? 'selected' : ''} value="${k}">${k === 'none' ? 'Does not repeat' : `Repeats ${k}`}</option>`).join('')}</select></div></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-2"><div><label class="field-label">Alert</label><select class="field" name="alert">${[['now', 'Immediate'], ['10min', '10 min before'], ['1hour', '1 hour before'], ['1day', '1 day before']].map(([v, l]) => `<option ${event.alert === v ? 'selected' : ''} value="${v}">${l}</option>`).join('')}</select></div><div><label class="field-label">Custom Color</label><input class="field !p-1 !h-10" type="color" name="color" value="${event.color || '#8b5cf6'}" /></div></div><div><label class="field-label">Location / call link</label><input class="field" name="location" value="${esc(event.location || '')}" placeholder="Add a place or URL" /></div><div><label class="field-label">Guests</label><input class="field" name="guests" value="${esc(event.guests || '')}" placeholder="Emails, separated by commas" /></div><div><label class="field-label">Description</label><textarea class="field min-h-[60px] resize-y" name="description" placeholder="Brief description">${esc(event.description || '')}</textarea></div><div><label class="field-label">Notes</label><textarea class="field min-h-[60px] resize-y" name="notes" placeholder="Add context, links, or an agenda">${esc(event.notes || '')}</textarea></div><div><label class="field-label flex items-center gap-4 font-normal normal-case tracking-normal text-slate-500"><input type="checkbox" name="notifyTelegram" value="telegram" ${(event.notifyVia || []).includes('telegram') ? 'checked' : ''} class="w-4 h-4"> Notify via Telegram</label></div></div><div class="mt-6 flex flex-wrap items-center gap-2">${isEdit ? '<button type="button" id="deleteEvent" class="secondary danger">Delete</button>' : ''}<span class="flex-1"></span><button type="button" class="secondary" data-close>Cancel</button><button class="primary" type="submit">${isEdit ? 'Save changes' : 'Create event'}</button></div></form></div>`;
+    $('#modalRoot').innerHTML = \`<div class="modal-backdrop"><form id="eventForm" class="modal-card"><div class="mb-6 flex items-start justify-between"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-violet-500">\${isEdit ? 'Event details' : 'New moment'}</p><h2 class="font-display mt-1 text-2xl font-bold">\${isEdit ? 'Edit event' : 'Create an event'}</h2></div><button type="button" class="icon-btn" data-close>✕</button></div><div class="space-y-4"><div><label class="field-label">Title</label><input class="field text-lg font-semibold" name="title" required autofocus value="\${esc(event.title || '')}" placeholder="What’s happening?" /></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-3"><div><label class="field-label">Date</label><input class="field" type="date" name="date" required value="\${event.date || state.cursor}" /></div><div><label class="field-label">Starts</label><input class="field" type="time" name="start" required value="\${event.start || '09:00'}" /></div><div><label class="field-label">Ends</label><input class="field" type="time" name="end" required value="\${event.end || '10:00'}" /></div></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-3"><div><label class="field-label">Calendar</label><select class="field capitalize" name="calendar">\${Object.keys(colors).map(k => \`<option \${event.calendar === k ? 'selected' : ''} value="\${k}">\${k}</option>\`).join('')}</select></div><div><label class="field-label">Status</label><select class="field" name="status">\${['pending', 'in-progress', 'completed'].map(k => \`<option \${event.status === k ? 'selected' : ''} value="\${k}">\${k}</option>\`).join('')}</select></div><div><label class="field-label">Repeat</label><select class="field" name="recurrence">\${['none', 'daily', 'weekly', 'monthly', 'yearly'].map(k => \`<option \${event.recurrence === k ? 'selected' : ''} value="\${k}">\${k === 'none' ? 'Does not repeat' : \`Repeats \${k}\`}</option>\`).join('')}</select></div></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-2"><div><label class="field-label">Alert</label><select class="field" name="alert">\${[['now', 'Immediate'], ['10min', '10 min before'], ['1hour', '1 hour before'], ['1day', '1 day before']].map(([v, l]) => \`<option \${event.alert === v ? 'selected' : ''} value="\${v}">\${l}</option>\`).join('')}</select></div><div><label class="field-label">Custom Color</label><input class="field !p-1 !h-10" type="color" name="color" value="\${event.color || '#8b5cf6'}" /></div></div><div><label class="field-label">Location / call link</label><input class="field" name="location" value="\${esc(event.location || '')}" placeholder="Add a place or URL" /></div><div><label class="field-label">Guests</label><input class="field" name="guests" value="\${esc(event.guests || '')}" placeholder="Emails, separated by commas" /></div><div><label class="field-label">Description</label><textarea class="field min-h-[60px] resize-y" name="description" placeholder="Brief description">\${esc(event.description || '')}</textarea></div><div><label class="field-label">Notes</label><textarea class="field min-h-[60px] resize-y" name="notes" placeholder="Add context, links, or an agenda">\${esc(event.notes || '')}</textarea></div><div><label class="field-label flex items-center gap-4 font-normal normal-case tracking-normal text-slate-500"><input type="checkbox" name="notifyTelegram" value="telegram" \${(event.notifyVia || []).includes('telegram') ? 'checked' : ''} class="w-4 h-4"> Notify via Telegram</label></div></div><div class="mt-6 flex flex-wrap items-center gap-2">\${isEdit ? '<button type="button" id="deleteEvent" class="secondary danger">Delete</button>' : ''}<span class="flex-1"></span><button type="button" class="secondary" data-close>Cancel</button><button class="primary" type="submit">\${isEdit ? 'Save changes' : 'Create event'}</button></div></form></div>\`;
     
     const root = $('.modal-backdrop');
     $$('[data-close]', root).forEach(b => b.onclick = closeModal);
@@ -259,7 +259,7 @@
       try {
         let updatedEvent;
         if (isEdit) {
-          updatedEvent = (await apiCall(`/events/${event.id}`, 'PUT', payload)).event;
+          updatedEvent = (await apiCall(\`/events/\${event.id}\`, 'PUT', payload)).event;
           state.events = state.events.map(x => x.id === event.id ? updatedEvent : x);
         } else {
           updatedEvent = (await apiCall('/events', 'POST', payload)).event;
@@ -276,7 +276,7 @@
     if (isEdit) {
       $('#deleteEvent').onclick = async () => {
         try {
-          await apiCall(`/events/${event.id}`, 'DELETE');
+          await apiCall(\`/events/\${event.id}\`, 'DELETE');
           state.events = state.events.filter(x => x.id !== event.id);
           closeModal();
           render();
@@ -291,12 +291,12 @@
 
   function openSearch() {
     const events = shownEvents();
-    $('#modalRoot').innerHTML = `<div class="modal-backdrop"><div class="modal-card !max-w-[680px] !p-3"><div class="flex items-center gap-3 border-b border-slate-200 p-3 dark:border-white/10"><span class="text-xl text-violet-500">⌕</span><input id="searchInput" class="min-w-0 flex-1 bg-transparent text-lg outline-none" placeholder="Search title, guest, location or notes…" autofocus/><button class="icon-btn" data-close>✕</button></div><div id="searchResults" class="max-h-[55vh] overflow-auto p-2"></div><div class="flex items-center gap-3 border-t border-slate-200 p-3 text-[10px] text-slate-400 dark:border-white/10"><kbd>↑↓</kbd> Navigate <kbd>↵</kbd> Open <span class="ml-auto">${events.length} events</span></div></div></div>`;
+    $('#modalRoot').innerHTML = \`<div class="modal-backdrop"><div class="modal-card !max-w-[680px] !p-3"><div class="flex items-center gap-3 border-b border-slate-200 p-3 dark:border-white/10"><span class="text-xl text-violet-500">⌕</span><input id="searchInput" class="min-w-0 flex-1 bg-transparent text-lg outline-none" placeholder="Search title, guest, location or notes…" autofocus/><button class="icon-btn" data-close>✕</button></div><div id="searchResults" class="max-h-[55vh] overflow-auto p-2"></div><div class="flex items-center gap-3 border-t border-slate-200 p-3 text-[10px] text-slate-400 dark:border-white/10"><kbd>↑↓</kbd> Navigate <kbd>↵</kbd> Open <span class="ml-auto">\${events.length} events</span></div></div></div>\`;
     let active = 0, filtered = events;
     const draw = () => {
       $('#searchResults').innerHTML = filtered.length ? filtered.slice(0, 20).map((e, i) => {
         const c = e.color ? [e.color, e.color + '22', e.color] : colors[e.calendar];
-        return `<button class="search-item ${i === active ? 'active' : ''}" data-result="${e.id}"><span class="dot" style="background:${c[0]}"></span><span class="min-w-0 flex-1"><strong class="block truncate">${esc(e.title)}</strong><small class="text-slate-400">${fmt(parseDate(e.date), { month: 'short', day: 'numeric' })} · ${e.start} · ${esc(e.location || e.calendar)}</small></span><span>›</span></button>`;
+        return \`<button class="search-item \${i === active ? 'active' : ''}" data-result="\${e.id}"><span class="dot" style="background:\${c[0]}"></span><span class="min-w-0 flex-1"><strong class="block truncate">\${esc(e.title)}</strong><small class="text-slate-400">\${fmt(parseDate(e.date), { month: 'short', day: 'numeric' })} · \${e.start} · \${esc(e.location || e.calendar)}</small></span><span>›</span></button>\`;
       }).join('') : '<div class="p-10 text-center text-slate-400">No matching events</div>';
       $$('[data-result]').forEach(b => b.onclick = () => { closeModal(); openEvent(state.events.find(e => e.id === b.dataset.result)); });
     };
@@ -313,7 +313,7 @@
   }
 
   function openMore() {
-    $('#modalRoot').innerHTML = `<div class="modal-backdrop"><div class="modal-card !max-w-sm"><h2 class="font-display mb-4 text-xl font-bold">Calendar tools</h2><div class="grid gap-2"><button id="exportJson" class="secondary text-left">↓ Export backup (.json)</button><button id="exportIcs" class="secondary text-left">↓ Export calendar (.ics)</button><button id="importBtn" class="secondary text-left">↑ Import JSON / ICS</button><button id="notifyBtn" class="secondary text-left">♢ Enable notifications</button><button id="shortcuts" class="secondary text-left">⌨ Keyboard shortcuts</button></div><button data-close class="secondary mt-5 w-full">Close</button></div></div>`;
+    $('#modalRoot').innerHTML = \`<div class="modal-backdrop"><div class="modal-card !max-w-sm"><h2 class="font-display mb-4 text-xl font-bold">Calendar tools</h2><div class="grid gap-2"><button id="exportJson" class="secondary text-left">↓ Export backup (.json)</button><button id="exportIcs" class="secondary text-left">↓ Export calendar (.ics)</button><button id="importBtn" class="secondary text-left">↑ Import JSON / ICS</button><button id="notifyBtn" class="secondary text-left">♢ Enable notifications</button><button id="shortcuts" class="secondary text-left">⌨ Keyboard shortcuts</button></div><button data-close class="secondary mt-5 w-full">Close</button></div></div>\`;
     $('#exportJson').onclick = exportJson;
     $('#exportIcs').onclick = exportIcs;
     $('#importBtn').onclick = () => $('#importFile').click();
@@ -326,28 +326,28 @@
   async function openAdmin() {
     try {
       const users = await apiCall('/admin/users');
-      $('#modalRoot').innerHTML = `<div class="modal-backdrop"><div class="modal-card !max-w-lg"><div class="flex items-center justify-between mb-6"><h2 class="font-display text-xl font-bold">Admin Panel</h2><button class="icon-btn" data-close>✕</button></div><div id="adminUserList"></div><button data-close class="secondary mt-5 w-full">Close</button></div></div>`;
+      $('#modalRoot').innerHTML = \`<div class="modal-backdrop"><div class="modal-card !max-w-lg"><div class="flex items-center justify-between mb-6"><h2 class="font-display text-xl font-bold">Admin Panel</h2><button class="icon-btn" data-close>✕</button></div><div id="adminUserList"></div><button data-close class="secondary mt-5 w-full">Close</button></div></div>\`;
       
-      $('#adminUserList').innerHTML = users.map(u => `
-        <div class="admin-user-card" data-username="${u.username}">
+      $('#adminUserList').innerHTML = users.map(u => \`
+        <div class="admin-user-card" data-username="\${u.username}">
           <div>
-            <strong class="block">${esc(u.username)}</strong>
-            <small class="text-slate-400">TG: ${u.telegramId} · ${u.isActive ? '✅' : '❌'}</small>
+            <strong class="block">\${esc(u.username)}</strong>
+            <small class="text-slate-400">TG: \${u.telegramId} · \${u.isActive ? '✅' : '❌'}</small>
           </div>
-          <div>${u.isAdmin ? '👑' : ''}</div>
+          <div>\${u.isAdmin ? '👑' : ''}</div>
         </div>
-      `).join('');
+      \`).join('');
 
       $$('.admin-user-card').forEach(card => {
         card.onclick = async () => {
           const username = card.dataset.username;
           try {
-            const data = await apiCall(`/dashboard/${username}`);
-            $('#adminUserList').innerHTML = `
+            const data = await apiCall(\`/dashboard/\${username}\`);
+            $('#adminUserList').innerHTML = \`
               <button class="secondary mb-4" id="backToUsers">← Back to users</button>
-              <h3 class="font-display text-lg font-bold mb-2">Data for ${esc(username)}</h3>
-              <div class="json-viewer">${esc(JSON.stringify(data, null, 2))}</div>
-            `;
+              <h3 class="font-display text-lg font-bold mb-2">Data for \${esc(username)}</h3>
+              <div class="json-viewer">\${esc(JSON.stringify(data, null, 2))}</div>
+            \`;
             $('#backToUsers').onclick = () => openAdmin();
           } catch (err) {
             toast(err.message);
@@ -364,7 +364,7 @@
 
   function exportJson() { download('chrona-backup.json', JSON.stringify({ version: 1, events: state.events }, null, 2), 'application/json'); toast('Backup exported'); }
   function exportIcs() {
-    const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Chrona//Calendar//EN', ...state.events.flatMap(e => ['BEGIN:VEVENT', `UID:${e.id}@chrona`, `DTSTART:${e.date.replaceAll('-', '')}T${e.start.replace(':', '')}00`, `DTEND:${e.date.replaceAll('-', '')}T${e.end.replace(':', '')}00`, `SUMMARY:${e.title.replaceAll(',', '\\,')}`, `LOCATION:${(e.location || '').replaceAll(',', '\\,')}`, `DESCRIPTION:${(e.notes || '').replaceAll('\n', '\\n')}`, 'END:VEVENT']), 'END:VCALENDAR'].join('\r\n');
+    const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Chrona//Calendar//EN', ...state.events.flatMap(e => ['BEGIN:VEVENT', \`UID:\${e.id}@chrona\`, \`DTSTART:\${e.date.replaceAll('-', '')}T\${e.start.replace(':', '')}00\`, \`DTEND:\${e.date.replaceAll('-', '')}T\${e.end.replace(':', '')}00\`, \`SUMMARY:\${e.title.replaceAll(',', '\\\\,')}\`, \`LOCATION:\${(e.location || '').replaceAll(',', '\\\\,')}\`, \`DESCRIPTION:\${(e.notes || '').replaceAll('\\n', '\\\\n')}\`, 'END:VEVENT']), 'END:VCALENDAR'].join('\\r\\n');
     download('chrona-calendar.ics', out, 'text/calendar'); toast('Calendar exported');
   }
   function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); URL.revokeObjectURL(a.href); }
@@ -383,9 +383,9 @@
       } else {
         const blocks = text.split('BEGIN:VEVENT').slice(1);
         for (const b of blocks) {
-          const get = k => (b.match(new RegExp(`${k}:(.*)`)) || [])[1]?.trim() || '';
+          const get = k => (b.match(new RegExp(\`\${k}:(.*)\`)) || [])[1]?.trim() || '';
           const ds = get('DTSTART');
-          const payload = { title: get('SUMMARY') || 'Imported', date: `${ds.slice(0, 4)}-${ds.slice(4, 6)}-${ds.slice(6, 8)}`, start: `${ds.slice(9, 11) || '09'}:${ds.slice(11, 13) || '00'}`, end: '10:00', calendar: 'work', location: get('LOCATION'), notes: get('DESCRIPTION') };
+          const payload = { title: get('SUMMARY') || 'Imported', date: \`\${ds.slice(0, 4)}-\${ds.slice(4, 6)}-\${ds.slice(6, 8)}\`, start: \`\${ds.slice(9, 11) || '09'}:\${ds.slice(11, 13) || '00'}\`, end: '10:00', calendar: 'work', location: get('LOCATION'), notes: get('DESCRIPTION') };
           await apiCall('/events', 'POST', payload);
         }
       }
@@ -405,9 +405,9 @@
       if (Notification.permission !== 'granted') return;
       const now = new Date();
       state.events.forEach(e => {
-        const dt = new Date(`${e.date}T${e.start}`), diff = dt - now;
+        const dt = new Date(\`\${e.date}T\${e.start}\`), diff = dt - now;
         if (diff > 0 && diff < 60000 && !sessionStorage.getItem('notified-' + e.id)) {
-          new Notification(e.title, { body: `Starts now${e.location ? ' · ' + e.location : ''}` });
+          new Notification(e.title, { body: \`Starts now\${e.location ? ' · ' + e.location : ''}\` });
           sessionStorage.setItem('notified-' + e.id, '1');
         }
       });
@@ -416,13 +416,13 @@
 
   function updateInsight() {
     const w = startWeek(new Date()), count = state.events.filter(e => { const d = parseDate(e.date); return d >= w && d <= addDays(w, 6); }).length;
-    $('#focusInsight').textContent = count > 8 ? `${count} events this week. Protect a focus block.` : count > 3 ? `${count} events this week — comfortably balanced.` : 'A spacious week. Perfect for focused progress.';
+    $('#focusInsight').textContent = count > 8 ? \`\${count} events this week. Protect a focus block.\` : count > 3 ? \`\${count} events this week — comfortably balanced.\` : 'A spacious week. Perfect for focused progress.';
   }
 
   function renderAuth(mode = 'login') {
     $('#appRoot').classList.add('hidden');
     $('#authRoot').classList.remove('hidden');
-    $('#authRoot').innerHTML = `
+    $('#authRoot').innerHTML = \`
       <div class="auth-screen">
         <div class="orb orb-a"></div><div class="orb orb-b"></div>
         <form id="authForm" class="auth-card">
@@ -431,28 +431,21 @@
             <div><p class="font-display text-xl font-bold">Welcome to Chrona</p><p class="text-xs text-slate-400">Your private planning space</p></div>
           </div>
           <div class="auth-tabs" id="authTabs">
-            <button type="button" class="auth-tab ${mode === 'login' ? 'active' : ''}" data-mode="login">Log in</button>
-            <button type="button" class="auth-tab ${mode === 'signup' ? 'active' : ''}" data-mode="signup">Sign up</button>
-            <button type="button" class="auth-tab ${mode === 'reset' ? 'active' : ''}" data-mode="reset">Reset</button>
+            <button type="button" class="auth-tab \${mode === 'login' ? 'active' : ''}" data-mode="login">Log in</button>
+            <button type="button" class="auth-tab \${mode === 'signup' ? 'active' : ''}" data-mode="signup">Sign up</button>
+            <button type="button" class="auth-tab \${mode === 'reset' ? 'active' : ''}" data-mode="reset">Reset</button>
           </div>
           <div id="authFields" class="space-y-4 mt-4">
-            ${mode === 'signup' ? `<div><label class="field-label">Username</label><input class="field" name="username" required placeholder="3+ characters"></div>` : ''}
-            ${mode === 'reset' ? `<div><label class="field-label">Username or Telegram ID</label><input class="field" name="identifier" required placeholder="Identifier"></div>` : ''}
+            \${mode === 'signup' ? \`<div><label class="field-label">Username</label><input class="field" name="username" required placeholder="3+ characters"></div>\` : ''}
+            \${mode === 'reset' ? \`<div><label class="field-label">Username or Telegram ID</label><input class="field" name="identifier" required placeholder="Identifier"></div>\` : ''}
             <div><label class="field-label">Password</label><input class="field" name="password" type="password" required minlength="6" placeholder="6+ characters"></div>
-            ${mode === 'signup' ? `<div><label class="field-label">Telegram ID</label><input class="field" name="telegramId" required placeholder="For activation"></div>` : ''}
-            ${mode === 'reset' && $('#authForm')?.dataset.step === 'code' ? `
-              <div><label class="field-label">Reset Code</label><input class="field" name="code" required placeholder="Code from Telegram"></div>
-              <div><label class="field-label">New Password</label><input class="field" name="newPassword" type="password" required minlength="6" placeholder="New password"></div>
-            ` : ''}
-            ${mode === 'signup' && $('#authForm')?.dataset.step === 'code' ? `
-              <div><label class="field-label">Activation Code</label><input class="field" name="code" required placeholder="Code from Telegram"></div>
-            ` : ''}
+            \${mode === 'signup' ? \`<div><label class="field-label">Telegram ID</label><input class="field" name="telegramId" required placeholder="For activation"></div>\` : ''}
           </div>
           <div id="authError" class="text-red-500 text-sm mt-2 hidden"></div>
-          <button class="primary mt-6 w-full" type="submit" id="authSubmitBtn">${mode === 'login' ? 'Log in' : mode === 'signup' ? ($('#authForm')?.dataset.step === 'code' ? 'Activate Account' : 'Create Account') : ($('#authForm')?.dataset.step === 'code' ? 'Change Password' : 'Send Reset Code')}</button>
+          <button class="primary mt-6 w-full" type="submit" id="authSubmitBtn">\${mode === 'login' ? 'Log in' : mode === 'signup' ? 'Create Account' : 'Send Reset Code'}</button>
           <p class="mt-4 text-center text-[10px] leading-4 text-slate-500">Secure authentication via Telegram.</p>
         </form>
-      </div>`;
+      </div>\`;
 
     $$('#authTabs .auth-tab').forEach(b => b.onclick = () => renderAuth(b.dataset.mode));
     
@@ -471,35 +464,13 @@
             showApp();
           }
         } else if (mode === 'signup') {
-          if ($('#authForm').dataset.step === 'code') {
-            await apiCall('/auth/verify', 'POST', { username: $('#authForm').dataset.user, code: fd.code });
-            toast('Account activated! Please log in.');
-            renderAuth('login');
-          } else {
-            await apiCall('/auth/register', 'POST', { username: fd.username, password: fd.password, telegramId: fd.telegramId });
-            toast('Activation code sent to Telegram.');
-            $('#authForm').dataset.step = 'code';
-            $('#authForm').dataset.user = fd.username;
-            renderAuth('signup');
-            $('#authForm').dataset.step = 'code';
-            $('#authForm').dataset.user = fd.username;
-          }
+          await apiCall('/auth/register', 'POST', { username: fd.username, password: fd.password, telegramId: fd.telegramId });
+          toast('Activation code sent to Telegram.');
+          renderAuth('verify');
         } else if (mode === 'reset') {
-          if ($('#authForm').dataset.step === 'code') {
-            await apiCall('/auth/reset', 'POST', { username: $('#authForm').dataset.user, code: fd.code, newPassword: fd.newPassword });
-            toast('Password changed successfully.');
-            renderAuth('login');
-          } else {
-            const data = await apiCall('/auth/reset-request', 'POST', { username: fd.identifier, telegramId: fd.identifier });
-            if (data.success) {
-              toast('Reset code sent to Telegram.');
-              $('#authForm').dataset.step = 'code';
-              $('#authForm').dataset.user = fd.identifier;
-              renderAuth('reset');
-              $('#authForm').dataset.step = 'code';
-              $('#authForm').dataset.user = fd.identifier;
-            }
-          }
+          await apiCall('/auth/reset-request', 'POST', { username: fd.identifier, telegramId: fd.identifier });
+          toast('Reset code sent to Telegram.');
+          renderAuth('confirm-reset');
         }
       } catch (err) {
         errEl.textContent = err.message;
@@ -508,18 +479,87 @@
     };
   }
 
+  function renderAuthVerify() {
+    $('#authRoot').innerHTML = \`
+      <div class="auth-screen">
+        <div class="orb orb-a"></div><div class="orb orb-b"></div>
+        <form id="authForm" class="auth-card">
+          <div class="flex items-center gap-3">
+            <span class="logo-mark">C</span>
+            <div><p class="font-display text-xl font-bold">Activate Account</p><p class="text-xs text-slate-400">Enter the code sent to Telegram</p></div>
+          </div>
+          <div class="space-y-4 mt-6">
+            <div><label class="field-label">Username</label><input class="field" name="username" required placeholder="Username"></div>
+            <div><label class="field-label">Activation Code</label><input class="field" name="code" required placeholder="6-digit code"></div>
+          </div>
+          <div id="authError" class="text-red-500 text-sm mt-2 hidden"></div>
+          <button class="primary mt-6 w-full" type="submit">Activate</button>
+          <button type="button" class="secondary mt-3 w-full" onclick="document.querySelector('[data-action]')?.click() || location.reload()">Back to Login</button>
+        </form>
+      </div>\`;
+    $('#authForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const errEl = $('#authError'); errEl.classList.add('hidden');
+      const fd = Object.fromEntries(new FormData(e.target));
+      try {
+        await apiCall('/auth/verify', 'POST', { username: fd.username, code: fd.code });
+        toast('Account activated! Please log in.');
+        renderAuth('login');
+      } catch (err) { errEl.textContent = err.message; errEl.classList.remove('hidden'); }
+    };
+  }
+
+  function renderAuthConfirmReset() {
+    $('#authRoot').innerHTML = \`
+      <div class="auth-screen">
+        <div class="orb orb-a"></div><div class="orb orb-b"></div>
+        <form id="authForm" class="auth-card">
+          <div class="flex items-center gap-3">
+            <span class="logo-mark">C</span>
+            <div><p class="font-display text-xl font-bold">Reset Password</p><p class="text-xs text-slate-400">Enter the code sent to Telegram</p></div>
+          </div>
+          <div class="space-y-4 mt-6">
+            <div><label class="field-label">Username</label><input class="field" name="username" required placeholder="Username"></div>
+            <div><label class="field-label">Reset Code</label><input class="field" name="code" required placeholder="6-digit code"></div>
+            <div><label class="field-label">New Password</label><input class="field" name="newPassword" type="password" required minlength="6" placeholder="New password"></div>
+          </div>
+          <div id="authError" class="text-red-500 text-sm mt-2 hidden"></div>
+          <button class="primary mt-6 w-full" type="submit">Change Password</button>
+          <button type="button" class="secondary mt-3 w-full" onclick="renderAuth('login')">Back to Login</button>
+        </form>
+      </div>\`;
+    $('#authForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const errEl = $('#authError'); errEl.classList.add('hidden');
+      const fd = Object.fromEntries(new FormData(e.target));
+      try {
+        await apiCall('/auth/reset', 'POST', { username: fd.username, code: fd.code, newPassword: fd.newPassword });
+        toast('Password changed successfully.');
+        renderAuth('login');
+      } catch (err) { errEl.textContent = err.message; errEl.classList.remove('hidden'); }
+    };
+  }
+
+  // Override renderAuth to handle verify and confirm-reset modes
+  const _renderAuth = renderAuth;
+  renderAuth = (mode) => {
+    if (mode === 'verify') return renderAuthVerify();
+    if (mode === 'confirm-reset') return renderAuthConfirmReset();
+    _renderAuth(mode);
+  };
+
   function shareReminder(event, channel) {
-    const text = `Reminder: ${event.title} · ${fmt(parseDate(event.date), { weekday: 'long', month: 'short', day: 'numeric' })} at ${event.start}${event.location ? ' · ' + event.location : ''}${event.notes ? '\n' + event.notes : ''}`;
-    const url = channel === 'whatsapp' ? `https://wa.me/?text=${encodeURIComponent(text)}` : `https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(text)}`;
+    const text = \`Reminder: \${event.title} · \${fmt(parseDate(event.date), { weekday: 'long', month: 'short', day: 'numeric' })} at \${event.start}\${event.location ? ' · ' + event.location : ''}\${event.notes ? '\\n' + event.notes : ''}\`;
+    const url = channel === 'whatsapp' ? \`https://wa.me/?text=\${encodeURIComponent(text)}\` : \`https://t.me/share/url?url=\${encodeURIComponent(location.href)}&text=\${encodeURIComponent(text)}\`;
     window.open(url, '_blank', 'noopener,noreferrer');
-    toast(`${channel === 'whatsapp' ? 'WhatsApp' : 'Telegram'} reminder ready`);
+    toast(\`\${channel === 'whatsapp' ? 'WhatsApp' : 'Telegram'} reminder ready\`);
   }
 
   function enhanceEventModal(event) {
     const form = $('#eventForm'); if (!form) return;
     const box = document.createElement('div');
     box.className = 'mt-5 border-t border-slate-200 pt-5 dark:border-white/10';
-    box.innerHTML = `<p class="field-label">Share reminder</p><div class="social-reminders flex gap-2"><button type="button" class="secondary" id="whatsappReminder">◉ WhatsApp</button><button type="button" class="secondary" id="telegramReminder">➤ Telegram</button></div>`;
+    box.innerHTML = \`<p class="field-label">Share reminder</p><div class="social-reminders flex gap-2"><button type="button" class="secondary" id="whatsappReminder">◉ WhatsApp</button><button type="button" class="secondary" id="telegramReminder">➤ Telegram</button></div>\`;
     form.querySelector('.mt-6').before(box);
     $('#whatsappReminder').onclick = () => shareReminder(event, 'whatsapp');
     $('#telegramReminder').onclick = () => shareReminder(event, 'telegram');
@@ -536,11 +576,11 @@
   function toast(msg, undo) {
     const t = document.createElement('div');
     t.className = 'toast';
-    t.innerHTML = `${esc(msg)}${undo ? ' <button class="ml-3 font-bold text-violet-300">Undo</button>' : ''}`;
+    t.innerHTML = \`\${esc(msg)}\${undo ? ' <button class="ml-3 font-bold text-violet-300">Undo</button>' : ''}\`;
     if (undo) t.querySelector('button').onclick = () => { undo(); t.remove(); };
     $('#toastRoot').append(t);
     setTimeout(() => t.remove(), undo ? 6000 : 2800);
   }
 
   init();
-})();
+})();`;
