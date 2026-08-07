@@ -29,7 +29,7 @@ import {
 // Data Access Layer (GitHub)
 // ================================================================
 
-async function getAllUsers(env) {
+export async function getAllUsers(env) {
   const { content, exists } = await githubGetFile(env, "users/allusers.json");
   if (!exists || !content) return {};
   try { return JSON.parse(content); } catch { return {}; }
@@ -54,7 +54,7 @@ async function saveUserDashboard(env, username, dashboard) {
 }
 
 async function getJobsForDate(env, date) {
-  const path = `jobs/${date}.json`; // date is YYYY-MM-DD
+  const path = `jobs/${date}.json`;
   const { content, exists } = await githubGetFile(env, path);
   if (!exists || !content) return [];
   try { return JSON.parse(content); } catch { return []; }
@@ -223,12 +223,10 @@ export async function handleCreateEvent(request, env, username) {
   dashboard.tasks.push(event);
   await saveUserDashboard(env, username, dashboard);
 
-  // Add to jobs file
   const jobs = await getJobsForDate(env, date);
   jobs.push(event);
   await saveJobsForDate(env, date, jobs);
 
-  // Telegram notification
   if (alert === "now" && notifyVia.includes("telegram")) {
     const users = await getAllUsers(env);
     const user = users[username];
@@ -283,18 +281,14 @@ export async function handleUpdateEvent(request, env, username, eventId) {
   dashboard.tasks[taskIndex] = event;
   await saveUserDashboard(env, username, dashboard);
 
-  // Handle date change in jobs files
   const newDate = event.date;
   if (oldDate !== newDate) {
-    // Remove from old date
     const oldJobs = await getJobsForDate(env, oldDate);
     await saveJobsForDate(env, oldDate, oldJobs.filter(j => j.id !== eventId));
-    // Add to new date
     const newJobs = await getJobsForDate(env, newDate);
     newJobs.push(event);
     await saveJobsForDate(env, newDate, newJobs);
   } else {
-    // Update in current date
     const jobs = await getJobsForDate(env, newDate);
     const jobIndex = jobs.findIndex((j) => j.id === eventId);
     if (jobIndex !== -1) {
@@ -317,7 +311,6 @@ export async function handleDeleteEvent(request, env, username, eventId) {
   dashboard.tasks.splice(taskIndex, 1);
   await saveUserDashboard(env, username, dashboard);
 
-  // Remove from jobs file
   const jobs = await getJobsForDate(env, event.date);
   await saveJobsForDate(env, event.date, jobs.filter((j) => j.id !== eventId));
 
@@ -384,10 +377,4 @@ export async function handleAdminGetAllEvents(request, env) {
     }
   }
   return jsonResponse(allEvents);
-}
-
-export async function getAllUsers(env) {
-  const { content, exists } = await githubGetFile(env, "users/allusers.json");
-  if (!exists || !content) return {};
-  try { return JSON.parse(content); } catch { return {}; }
 }
