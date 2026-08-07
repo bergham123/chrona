@@ -11,7 +11,7 @@ export const HTML_PAGE = `<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://raw.githubusercontent.com/bergham123/style-js/refs/heads/main/chroma/style.css">
+    <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body class="dark:bg-[#0a0a12] bg-slate-50 text-slate-900 dark:text-slate-100 overflow-hidden h-screen flex flex-col">
 
@@ -82,7 +82,7 @@ export const HTML_PAGE = `<!DOCTYPE html>
     
     <input type="file" id="importFile" hidden accept=".json,.ics">
 
-    <script src="https://raw.githubusercontent.com/bergham123/style-js/refs/heads/main/chroma/script.js"></script>
+    <script src="/assets/script.js"></script>
     <script>
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('chrona_user');
