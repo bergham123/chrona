@@ -3,7 +3,7 @@
 // ================================================================
 
 import { HTML_PAGE } from './src/app.js';
-import { CSS_STYLE } from './src/style.css';
+import { CSS_STYLE } from './src/style.js';
 import { JS_CODE } from './src/script.js';
 import {
     handleRegister,
@@ -31,7 +31,6 @@ export default {
         const path = url.pathname;
         const method = request.method;
 
-        // CORS
         if (method === "OPTIONS") {
             return new Response(null, {
                 headers: {
@@ -43,7 +42,6 @@ export default {
         }
 
         try {
-            // ===== Static UI Assets =====
             if (path === '/ui/style.css' && method === 'GET') {
                 return new Response(CSS_STYLE, {
                     headers: { 'Content-Type': 'text/css; charset=utf-8' },
@@ -56,27 +54,23 @@ export default {
                 });
             }
 
-            // ===== HTML Page =====
             if ((path === '/' || path === '/ui') && method === 'GET') {
                 return new Response(HTML_PAGE, {
                     headers: { 'Content-Type': 'text/html; charset=utf-8' },
                 });
             }
 
-            // ===== Public Auth Routes =====
             if (path === '/auth/register' && method === 'POST') return handleRegister(request, env);
             if (path === '/auth/login' && method === 'POST') return handleLogin(request, env);
             if (path === '/auth/verify' && method === 'POST') return handleVerify(request, env);
             if (path === '/auth/reset-request' && method === 'POST') return handleRequestReset(request, env);
             if (path === '/auth/reset' && method === 'POST') return handleResetPassword(request, env);
 
-            // ===== Protected Routes =====
             const username = request.headers.get('X-Username');
             if (!username && (path.startsWith('/events') || path.startsWith('/dashboard') || path.startsWith('/admin'))) {
                 return jsonResponse({ error: 'Authentication required' }, 401);
             }
 
-            // Events Routes
             if (path === '/events' && method === 'GET') return handleGetEvents(request, env, username);
             if (path === '/events' && method === 'POST') return handleCreateEvent(request, env, username);
             
@@ -90,19 +84,16 @@ export default {
                 return handleDeleteEvent(request, env, username, eventId);
             }
 
-            // Events by specific date
             if (path.startsWith('/events/date/') && method === 'GET') {
                 const date = path.split('/')[3];
                 return handleGetEventsByDate(request, env, date);
             }
 
-            // User Dashboard
             if (path.startsWith('/dashboard/') && method === 'GET') {
                 const user = path.split('/')[2];
                 return handleGetDashboard(request, env, user);
             }
 
-            // ===== Admin Routes =====
             if (path.startsWith('/admin/')) {
                 const users = await getAllUsers(env);
                 const user = users[username];
