@@ -1,5 +1,8 @@
+// ================================================================
+// src/app.js
+// ================================================================
+
 export const HTML_PAGE = `<!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,16 +15,12 @@ export const HTML_PAGE = `<!DOCTYPE html>
 </head>
 <body class="dark:bg-[#0a0a12] bg-slate-50 text-slate-900 dark:text-slate-100 overflow-hidden h-screen flex flex-col">
 
-    <!-- Authentication Root -->
     <div id="authRoot" class="hidden h-full"></div>
 
-    <!-- Application Root -->
     <div id="appRoot" class="hidden h-full flex overflow-hidden relative">
-        <!-- Orbs -->
         <div class="orb orb-a"></div>
         <div class="orb orb-b"></div>
 
-        <!-- Sidebar -->
         <aside id="sidebar" class="fixed md:relative z-40 w-72 h-full bg-white dark:bg-[#12121b] border-l border-slate-200 dark:border-white/10 p-5 flex flex-col gap-6 transition-transform duration-300 -translate-x-full md:translate-x-0 overflow-auto">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -42,9 +41,7 @@ export const HTML_PAGE = `<!DOCTYPE html>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 flex flex-col h-full overflow-hidden">
-            <!-- Header -->
             <header class="h-16 border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#12121b]/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 z-30">
                 <div class="flex items-center gap-4">
                     <button class="icon-btn md:hidden" data-action="sidebar">☰</button>
@@ -66,46 +63,40 @@ export const HTML_PAGE = `<!DOCTYPE html>
                 </div>
             </header>
 
-            <!-- Mobile View Switcher -->
             <div class="md:hidden p-2 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-[#12121b]">
                 <div id="mobileViewSwitcher" class="flex gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl"></div>
             </div>
 
-            <!-- Insight Bar -->
             <div class="px-6 py-2 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[#12121b]">
                 <span id="focusInsight"></span>
             </div>
 
-            <!-- Calendar Shell -->
             <div class="flex-1 overflow-auto bg-white dark:bg-[#0a0a12] calendar-shell">
                 <div id="calendarView" class="min-h-full"></div>
             </div>
         </main>
     </div>
 
-    <!-- Modals & Toasts -->
     <div id="modalRoot"></div>
     <div id="toastRoot" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none"></div>
     
-    <!-- Hidden Utilities -->
     <input type="file" id="importFile" hidden accept=".json,.ics">
 
     <script src="/ui/script.js"></script>
     <script>
-        // Bind UI elements that don't use data-action
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('chrona_user');
             location.reload();
         });
         document.getElementById('avatarBtn').addEventListener('click', () => {
             const username = localStorage.getItem('chrona_user') || 'User';
-            document.querySelector('#modalRoot').innerHTML = `
+            document.querySelector('#modalRoot').innerHTML = \`
                 <div class="modal-backdrop">
                     <div class="modal-card !max-w-sm">
                         <div class="flex items-center gap-3">
-                            <button class="avatar">${username.slice(0,2).toUpperCase()}</button>
+                            <button class="avatar">\${username.slice(0,2).toUpperCase()}</button>
                             <div>
-                                <h2 class="font-display text-xl font-bold">${username}</h2>
+                                <h2 class="font-display text-xl font-bold">\${username}</h2>
                                 <p class="text-sm text-slate-400">Personal Account</p>
                             </div>
                         </div>
@@ -113,11 +104,10 @@ export const HTML_PAGE = `<!DOCTYPE html>
                         <button class="secondary danger mt-5 w-full" onclick="localStorage.removeItem('chrona_user');location.reload();">Sign out</button>
                         <button class="secondary mt-2 w-full" data-close>Close</button>
                     </div>
-                </div>`;
+                </div>\`;
             document.querySelector('[data-close]').onclick = () => document.querySelector('#modalRoot').innerHTML = '';
             document.querySelector('.modal-backdrop').onclick = e => { if(e.target.classList.contains('modal-backdrop')) document.querySelector('#modalRoot').innerHTML = ''; };
         });
     </script>
 </body>
-</html>
-`;
+</html>`;
