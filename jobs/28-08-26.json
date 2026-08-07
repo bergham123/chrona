@@ -1,0 +1,20 @@
+[
+  {
+    "id": "7726f114-245c-47c0-95cd-ed0edf6e624f",
+    "title": "ادخال العربية",
+    "description": "",
+    "date": "28-08-26",
+    "time": "13:03",
+    "endTime": "19:17",
+    "notes": "سمك",
+    "alert": "now",
+    "notifyVia": [
+      "telegram"
+    ],
+    "color": "#46667c",
+    "type": "work",
+    "status": "pending",
+    "createdAt": "2026-08-07T16:15:14.906Z",
+    "updatedAt": "2026-08-07T16:15:14.906Z"
+  }
+]
