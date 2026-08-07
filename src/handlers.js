@@ -1,5 +1,5 @@
 // ================================================================
-// معالجات مسارات API
+// src/handlers.js
 // ================================================================
 
 import {
@@ -13,91 +13,61 @@ import {
   hashPassword,
   verifyPassword,
   generateId,
-  formatDateToDDMMYY,
   getToday,
   validateUsername,
   validatePassword,
-  validateTaskTitle,
+  validateEventTitle,
   generateVerificationCode,
   storeVerificationCode,
   getVerificationCode,
   deleteVerificationCode,
   sendTelegramMessage,
+  migrateEvent,
 } from "./helpers.js";
 
 // ================================================================
-// طبقة الوصول إلى البيانات (GitHub)
+// Data Access Layer (GitHub)
 // ================================================================
 
 async function getAllUsers(env) {
   const { content, exists } = await githubGetFile(env, "users/allusers.json");
   if (!exists || !content) return {};
-  try {
-    return JSON.parse(content);
-  } catch {
-    return {};
-  }
+  try { return JSON.parse(content); } catch { return {}; }
 }
 
 async function saveAllUsers(env, users) {
   const { sha } = await githubGetFile(env, "users/allusers.json");
-  await githubPutFile(
-    env,
-    "users/allusers.json",
-    JSON.stringify(users, null, 2),
-    sha,
-    "تحديث قائمة المستخدمين"
-  );
+  await githubPutFile(env, "users/allusers.json", JSON.stringify(users, null, 2), sha, "Update users list");
 }
 
 async function getUserDashboard(env, username) {
   const path = `dash-users/${username}.json`;
   const { content, exists } = await githubGetFile(env, path);
   if (!exists || !content) return null;
-  try {
-    return JSON.parse(content);
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(content); } catch { return null; }
 }
 
 async function saveUserDashboard(env, username, dashboard) {
   const path = `dash-users/${username}.json`;
   const { sha } = await githubGetFile(env, path);
-  await githubPutFile(
-    env,
-    path,
-    JSON.stringify(dashboard, null, 2),
-    sha,
-    `تحديث لوحة تحكم ${username}`
-  );
+  await githubPutFile(env, path, JSON.stringify(dashboard, null, 2), sha, `Update dashboard ${username}`);
 }
 
 async function getJobsForDate(env, date) {
-  const path = `jobs/${date}.json`;
+  const path = `jobs/${date}.json`; // date is YYYY-MM-DD
   const { content, exists } = await githubGetFile(env, path);
   if (!exists || !content) return [];
-  try {
-    return JSON.parse(content);
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(content); } catch { return []; }
 }
 
-async function saveJobsForDate(env, date, tasks) {
+async function saveJobsForDate(env, date, events) {
   const path = `jobs/${date}.json`;
   const { sha } = await githubGetFile(env, path);
-  await githubPutFile(
-    env,
-    path,
-    JSON.stringify(tasks, null, 2),
-    sha,
-    `تحديث مهام ${date}`
-  );
+  await githubPutFile(env, path, JSON.stringify(events, null, 2), sha, `Update jobs ${date}`);
 }
 
 // ================================================================
-// المصادقة (التسجيل، الدخول، التفعيل، استعادة كلمة المرور)
+// Authentication
 // ================================================================
 
 export async function handleRegister(request, env) {
@@ -108,20 +78,13 @@ export async function handleRegister(request, env) {
   if (userError) return jsonResponse({ error: userError }, 400);
   const passError = validatePassword(password);
   if (passError) return jsonResponse({ error: passError }, 400);
-  if (!telegramId) {
-    return jsonResponse({ error: "معرف تيليجرام مطلوب للتفعيل" }, 400);
-  }
+  if (!telegramId) return jsonResponse({ error: "Telegram ID is required for activation" }, 400);
 
   const users = await getAllUsers(env);
-  if (users[username]) {
-    return jsonResponse({ error: "اسم المستخدم موجود بالفعل" }, 409);
-  }
-
-  // التأكد من عدم استخدام نفس التليجرام
+  if (users[username]) return jsonResponse({ error: "Username already exists" }, 409);
+  
   const existing = Object.values(users).find(u => u.telegramId === telegramId);
-  if (existing) {
-    return jsonResponse({ error: "هذا التليجرام مرتبط بحساب آخر" }, 409);
-  }
+  if (existing) return jsonResponse({ error: "This Telegram ID is linked to another account" }, 409);
 
   const passwordHash = await hashPassword(password);
   users[username] = {
@@ -134,317 +97,247 @@ export async function handleRegister(request, env) {
   };
   await saveAllUsers(env, users);
 
-  // إنشاء ملف المستخدم الفارغ
-  const dashboard = {
-    username,
-    tasks: [],
-    createdAt: new Date().toISOString(),
-  };
+  const dashboard = { username, tasks: [], createdAt: new Date().toISOString() };
   await saveUserDashboard(env, username, dashboard);
 
-  // توليد وإرسال رمز التفعيل
   const code = generateVerificationCode();
   await storeVerificationCode(env, username, code);
-  await sendTelegramMessage(
-    env,
-    telegramId,
-    `مرحباً ${username}! رمز التفعيل الخاص بك هو: ${code}`
-  );
+  await sendTelegramMessage(env, telegramId, `Hello ${username}! Your activation code is: ${code}`);
 
-  return jsonResponse(
-    {
-      success: true,
-      message: "تم التسجيل. تم إرسال رمز التفعيل إلى تيليجرام.",
-      username,
-    },
-    201
-  );
+  return jsonResponse({ success: true, message: "Registered. Activation code sent to Telegram.", username }, 201);
 }
 
 export async function handleLogin(request, env) {
   const body = await request.json();
   const { username, password } = body;
 
-  if (!username || !password) {
-    return jsonResponse({ error: "اسم المستخدم وكلمة المرور مطلوبان" }, 400);
-  }
+  if (!username || !password) return jsonResponse({ error: "Username and password are required" }, 400);
 
   const users = await getAllUsers(env);
   const user = users[username];
-  if (!user) {
-    return jsonResponse({ error: "بيانات غير صحيحة" }, 401);
-  }
-
-  if (!user.isActive) {
-    return jsonResponse({ error: "الحساب غير مفعّل. يرجى تفعيله عبر تيليجرام." }, 403);
-  }
+  if (!user) return jsonResponse({ error: "Invalid credentials" }, 401);
+  if (!user.isActive) return jsonResponse({ error: "Account inactive. Please activate via Telegram." }, 403);
 
   const valid = await verifyPassword(password, user.passwordHash);
-  if (!valid) {
-    return jsonResponse({ error: "بيانات غير صحيحة" }, 401);
-  }
+  if (!valid) return jsonResponse({ error: "Invalid credentials" }, 401);
 
-  return jsonResponse({ success: true, username, message: "تم تسجيل الدخول بنجاح" });
+  return jsonResponse({ success: true, username, isAdmin: user.isAdmin || false });
 }
 
 export async function handleVerify(request, env) {
   const { username, code } = await request.json();
-  if (!username || !code) {
-    return jsonResponse({ error: "اسم المستخدم والرمز مطلوبان" }, 400);
-  }
+  if (!username || !code) return jsonResponse({ error: "Username and code are required" }, 400);
 
   const storedCode = await getVerificationCode(env, username);
-  if (!storedCode || storedCode !== code) {
-    return jsonResponse({ error: "رمز غير صحيح أو منتهي الصلاحية" }, 400);
-  }
+  if (!storedCode || storedCode !== code) return jsonResponse({ error: "Invalid or expired code" }, 400);
 
   const users = await getAllUsers(env);
-  if (!users[username]) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  if (!users[username]) return jsonResponse({ error: "User not found" }, 404);
 
   users[username].isActive = true;
   await saveAllUsers(env, users);
   await deleteVerificationCode(env, username);
 
-  return jsonResponse({ success: true, message: "تم تفعيل الحساب بنجاح" });
+  return jsonResponse({ success: true, message: "Account activated successfully" });
 }
 
 export async function handleRequestReset(request, env) {
   const { username, telegramId } = await request.json();
-  if (!username && !telegramId) {
-    return jsonResponse({ error: "اسم المستخدم أو معرف التليجرام مطلوب" }, 400);
-  }
+  if (!username && !telegramId) return jsonResponse({ error: "Username or Telegram ID required" }, 400);
 
   const users = await getAllUsers(env);
-  let user = null;
-  if (username) {
-    user = users[username];
-  } else {
-    user = Object.values(users).find(u => u.telegramId === telegramId);
-  }
-
-  if (!user) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  let user = username ? users[username] : Object.values(users).find(u => u.telegramId === telegramId);
+  if (!user) return jsonResponse({ error: "User not found" }, 404);
 
   const code = generateVerificationCode();
   await storeVerificationCode(env, user.username, code);
-  await sendTelegramMessage(
-    env,
-    user.telegramId,
-    `رمز إعادة تعيين كلمة المرور: ${code}`
-  );
+  await sendTelegramMessage(env, user.telegramId, `Password reset code: ${code}`);
 
-  return jsonResponse({ success: true, message: "تم إرسال الرمز إلى تيليجرام" });
+  return jsonResponse({ success: true, message: "Reset code sent to Telegram" });
 }
 
 export async function handleResetPassword(request, env) {
   const { username, code, newPassword } = await request.json();
-  if (!username || !code || !newPassword) {
-    return jsonResponse({ error: "جميع الحقول مطلوبة" }, 400);
-  }
+  if (!username || !code || !newPassword) return jsonResponse({ error: "All fields are required" }, 400);
 
   const storedCode = await getVerificationCode(env, username);
-  if (!storedCode || storedCode !== code) {
-    return jsonResponse({ error: "رمز غير صحيح أو منتهي الصلاحية" }, 400);
-  }
+  if (!storedCode || storedCode !== code) return jsonResponse({ error: "Invalid or expired code" }, 400);
 
   const users = await getAllUsers(env);
-  if (!users[username]) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  if (!users[username]) return jsonResponse({ error: "User not found" }, 404);
 
   users[username].passwordHash = await hashPassword(newPassword);
   await saveAllUsers(env, users);
   await deleteVerificationCode(env, username);
 
-  return jsonResponse({ success: true, message: "تم تغيير كلمة المرور بنجاح" });
+  return jsonResponse({ success: true, message: "Password changed successfully" });
 }
 
 // ================================================================
-// إدارة المهام (مع الحقول الجديدة)
+// Events Management
 // ================================================================
 
-export async function handleGetTasks(request, env, username) {
+export async function handleGetEvents(request, env, username) {
   const dashboard = await getUserDashboard(env, username);
-  if (!dashboard) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
-  return jsonResponse({ tasks: dashboard.tasks });
+  if (!dashboard) return jsonResponse({ error: "User not found" }, 404);
+  
+  const events = (dashboard.tasks || []).map(migrateEvent);
+  return jsonResponse({ events });
 }
 
-export async function handleCreateTask(request, env, username) {
+export async function handleCreateEvent(request, env, username) {
   const body = await request.json();
-  const {
-    title,
-    description,
-    date,        // YYYY-MM-DD
-    time,
-    endTime,
-    notes,
-    alert,
-    notifyVia,
-    color,
-    type
-  } = body;
+  const { title, description, date, start, end, notes, alert, notifyVia, color, type, status, calendar, location, guests, recurrence } = body;
 
-  const titleError = validateTaskTitle(title);
+  const titleError = validateEventTitle(title);
   if (titleError) return jsonResponse({ error: titleError }, 400);
 
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return jsonResponse({ error: "التاريخ مطلوب بصيغة YYYY-MM-DD" }, 400);
+    return jsonResponse({ error: "Date is required in YYYY-MM-DD format" }, 400);
   }
 
   const dashboard = await getUserDashboard(env, username);
-  if (!dashboard) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  if (!dashboard) return jsonResponse({ error: "User not found" }, 404);
 
-  const jobDate = formatDateToDDMMYY(date);
-
-  const task = {
+  const event = {
     id: generateId(),
     title: title.trim(),
     description: (description || "").trim(),
-    date: jobDate,
-    time: time || "00:00",
-    endTime: endTime || "",
+    date,
+    start: start || "09:00",
+    end: end || "10:00",
     notes: notes || "",
     alert: alert || "now",
     notifyVia: Array.isArray(notifyVia) ? notifyVia : [],
-    color: color || "#3498db",
-    type: type || "other",
-    status: "pending",
+    color: color || null,
+    type: type || calendar || "work",
+    status: status || "pending",
+    calendar: calendar || type || "work",
+    location: location || "",
+    guests: guests || "",
+    recurrence: recurrence || "none",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  dashboard.tasks.push(task);
+  dashboard.tasks.push(event);
   await saveUserDashboard(env, username, dashboard);
 
-  // إضافة إلى ملف jobs بالتاريخ المحدد
-  const jobs = await getJobsForDate(env, jobDate);
-  jobs.push(task);
-  await saveJobsForDate(env, jobDate, jobs);
+  // Add to jobs file
+  const jobs = await getJobsForDate(env, date);
+  jobs.push(event);
+  await saveJobsForDate(env, date, jobs);
 
-  // إرسال تنبيه فوري إذا اختار المستخدم
+  // Telegram notification
   if (alert === "now" && notifyVia.includes("telegram")) {
     const users = await getAllUsers(env);
     const user = users[username];
-    if (user && user.telegramId) {
-      await sendTelegramMessage(
-        env,
-        user.telegramId,
-        `🔔 تذكير بمهمة جديدة:\nالعنوان: ${task.title}\nالتاريخ: ${jobDate}\nالوقت: ${task.time}`
-      );
+    if (user?.telegramId) {
+      await sendTelegramMessage(env, user.telegramId, `🔔 New Event:\n${event.title}\nDate: ${date}\nTime: ${event.start}`);
     }
   }
 
-  return jsonResponse({ success: true, task }, 201);
+  return jsonResponse({ success: true, event }, 201);
 }
 
-export async function handleUpdateTask(request, env, username, taskId) {
+export async function handleUpdateEvent(request, env, username, eventId) {
   const body = await request.json();
-  const { title, description, date, time, endTime, notes, alert, notifyVia, color, type, status } = body;
+  const { title, description, date, start, end, notes, alert, notifyVia, color, type, status, calendar, location, guests, recurrence } = body;
 
   const dashboard = await getUserDashboard(env, username);
-  if (!dashboard) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  if (!dashboard) return jsonResponse({ error: "User not found" }, 404);
 
-  const taskIndex = dashboard.tasks.findIndex((t) => t.id === taskId);
-  if (taskIndex === -1) {
-    return jsonResponse({ error: "المهمة غير موجودة" }, 404);
-  }
+  const taskIndex = dashboard.tasks.findIndex((t) => t.id === eventId);
+  if (taskIndex === -1) return jsonResponse({ error: "Event not found" }, 404);
 
-  const task = dashboard.tasks[taskIndex];
+  const event = dashboard.tasks[taskIndex];
+  const oldDate = event.date;
+  
   if (title !== undefined) {
-    const err = validateTaskTitle(title);
+    const err = validateEventTitle(title);
     if (err) return jsonResponse({ error: err }, 400);
-    task.title = title.trim();
+    event.title = title.trim();
   }
-  if (description !== undefined) task.description = description.trim();
+  if (description !== undefined) event.description = description.trim();
   if (date) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return jsonResponse({ error: "صيغة التاريخ غير صحيحة" }, 400);
-    }
-    task.date = formatDateToDDMMYY(date);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return jsonResponse({ error: "Invalid date format" }, 400);
+    event.date = date;
   }
-  if (time !== undefined) task.time = time || "00:00";
-  if (endTime !== undefined) task.endTime = endTime || "";
-  if (notes !== undefined) task.notes = notes || "";
-  if (alert !== undefined) task.alert = alert || "now";
-  if (notifyVia !== undefined) task.notifyVia = Array.isArray(notifyVia) ? notifyVia : [];
-  if (color !== undefined) task.color = color || "#3498db";
-  if (type !== undefined) task.type = type || "other";
+  if (start !== undefined) event.start = start;
+  if (end !== undefined) event.end = end;
+  if (notes !== undefined) event.notes = notes;
+  if (alert !== undefined) event.alert = alert;
+  if (notifyVia !== undefined) event.notifyVia = Array.isArray(notifyVia) ? notifyVia : [];
+  if (color !== undefined) event.color = color;
+  if (type !== undefined) event.type = type;
+  if (calendar !== undefined) event.calendar = calendar;
+  if (location !== undefined) event.location = location;
+  if (guests !== undefined) event.guests = guests;
+  if (recurrence !== undefined) event.recurrence = recurrence;
   if (status) {
-    if (!["pending", "in-progress", "completed"].includes(status)) {
-      return jsonResponse({ error: "الحالة غير صالحة" }, 400);
-    }
-    task.status = status;
+    if (!["pending", "in-progress", "completed"].includes(status)) return jsonResponse({ error: "Invalid status" }, 400);
+    event.status = status;
   }
-  task.updatedAt = new Date().toISOString();
+  event.updatedAt = new Date().toISOString();
 
-  dashboard.tasks[taskIndex] = task;
+  dashboard.tasks[taskIndex] = event;
   await saveUserDashboard(env, username, dashboard);
 
-  // تحديث ملف jobs
-  const jobDate = task.date;
-  const jobs = await getJobsForDate(env, jobDate);
-  const jobIndex = jobs.findIndex((j) => j.id === taskId);
-  if (jobIndex !== -1) {
-    jobs[jobIndex] = task;
-    await saveJobsForDate(env, jobDate, jobs);
+  // Handle date change in jobs files
+  const newDate = event.date;
+  if (oldDate !== newDate) {
+    // Remove from old date
+    const oldJobs = await getJobsForDate(env, oldDate);
+    await saveJobsForDate(env, oldDate, oldJobs.filter(j => j.id !== eventId));
+    // Add to new date
+    const newJobs = await getJobsForDate(env, newDate);
+    newJobs.push(event);
+    await saveJobsForDate(env, newDate, newJobs);
+  } else {
+    // Update in current date
+    const jobs = await getJobsForDate(env, newDate);
+    const jobIndex = jobs.findIndex((j) => j.id === eventId);
+    if (jobIndex !== -1) {
+      jobs[jobIndex] = event;
+      await saveJobsForDate(env, newDate, jobs);
+    }
   }
 
-  return jsonResponse({ success: true, task });
+  return jsonResponse({ success: true, event });
 }
 
-export async function handleDeleteTask(request, env, username, taskId) {
+export async function handleDeleteEvent(request, env, username, eventId) {
   const dashboard = await getUserDashboard(env, username);
-  if (!dashboard) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  if (!dashboard) return jsonResponse({ error: "User not found" }, 404);
 
-  const taskIndex = dashboard.tasks.findIndex((t) => t.id === taskId);
-  if (taskIndex === -1) {
-    return jsonResponse({ error: "المهمة غير موجودة" }, 404);
-  }
+  const taskIndex = dashboard.tasks.findIndex((t) => t.id === eventId);
+  if (taskIndex === -1) return jsonResponse({ error: "Event not found" }, 404);
 
-  const task = dashboard.tasks[taskIndex];
+  const event = dashboard.tasks[taskIndex];
   dashboard.tasks.splice(taskIndex, 1);
   await saveUserDashboard(env, username, dashboard);
 
-  // حذف من ملف jobs
-  const jobDate = task.date;
-  const jobs = await getJobsForDate(env, jobDate);
-  const filtered = jobs.filter((j) => j.id !== taskId);
-  await saveJobsForDate(env, jobDate, filtered);
+  // Remove from jobs file
+  const jobs = await getJobsForDate(env, event.date);
+  await saveJobsForDate(env, event.date, jobs.filter((j) => j.id !== eventId));
 
   return jsonResponse({ success: true });
 }
 
-export async function handleGetJobsByDate(request, env, dateParam) {
-  // dateParam يمكن أن يكون YYYY-MM-DD أو DD-MM-YY
-  let date = dateParam;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
-    date = formatDateToDDMMYY(dateParam);
-  }
-  const tasks = await getJobsForDate(env, date);
-  return jsonResponse({ date, tasks });
+export async function handleGetEventsByDate(request, env, date) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return jsonResponse({ error: "Invalid date format" }, 400);
+  const events = await getJobsForDate(env, date);
+  return jsonResponse({ date, events: events.map(migrateEvent) });
 }
 
 export async function handleGetDashboard(request, env, username) {
   const dashboard = await getUserDashboard(env, username);
-  if (!dashboard) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  if (!dashboard) return jsonResponse({ error: "User not found" }, 404);
   return jsonResponse(dashboard);
 }
 
 // ================================================================
-// دوال المشرف
+// Admin Handlers
 // ================================================================
 
 export async function handleAdminGetUsers(request, env) {
@@ -461,40 +354,40 @@ export async function handleAdminGetUsers(request, env) {
 
 export async function handleAdminDeleteUser(request, env, username) {
   const users = await getAllUsers(env);
-  if (!users[username]) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  if (!users[username]) return jsonResponse({ error: "User not found" }, 404);
   delete users[username];
   await saveAllUsers(env, users);
-  // حذف ملف المستخدم
+  
   const { sha } = await githubGetFile(env, `dash-users/${username}.json`);
-  if (sha) {
-    await githubDeleteFile(env, `dash-users/${username}.json`, sha, "حذف المستخدم");
-  }
-  return jsonResponse({ success: true, message: "تم حذف المستخدم" });
+  if (sha) await githubDeleteFile(env, `dash-users/${username}.json`, sha, "Delete user");
+  return jsonResponse({ success: true, message: "User deleted" });
 }
 
 export async function handleAdminToggleAdmin(request, env, username) {
   const { isAdmin } = await request.json();
   const users = await getAllUsers(env);
-  if (!users[username]) {
-    return jsonResponse({ error: "المستخدم غير موجود" }, 404);
-  }
+  if (!users[username]) return jsonResponse({ error: "User not found" }, 404);
   users[username].isAdmin = isAdmin;
   await saveAllUsers(env, users);
   return jsonResponse({ success: true });
 }
 
-export async function handleAdminGetAllTasks(request, env) {
+export async function handleAdminGetAllEvents(request, env) {
   const users = await getAllUsers(env);
-  let allTasks = [];
+  let allEvents = [];
   for (const username of Object.keys(users)) {
     const dashboard = await getUserDashboard(env, username);
-    if (dashboard && dashboard.tasks) {
+    if (dashboard?.tasks) {
       dashboard.tasks.forEach((task) => {
-        allTasks.push({ ...task, user: username });
+        allEvents.push({ ...migrateEvent(task), user: username });
       });
     }
   }
-  return jsonResponse(allTasks);
+  return jsonResponse(allEvents);
+}
+
+export async function getAllUsers(env) {
+  const { content, exists } = await githubGetFile(env, "users/allusers.json");
+  if (!exists || !content) return {};
+  try { return JSON.parse(content); } catch { return {}; }
 }
