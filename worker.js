@@ -3,7 +3,6 @@
 // ================================================================
 
 import { HTML_PAGE } from './src/app.js';
-import { JS_CODE } from './src/script.js';
 import {
     handleRegister,
     handleLogin,
@@ -41,12 +40,6 @@ export default {
         }
 
         try {
-            if (path === '/ui/script.js' && method === 'GET') {
-                return new Response(JS_CODE, {
-                    headers: { 'Content-Type': 'application/javascript; charset=utf-8' },
-                });
-            }
-
             if ((path === '/' || path === '/ui') && method === 'GET') {
                 return new Response(HTML_PAGE, {
                     headers: { 'Content-Type': 'text/html; charset=utf-8' },
