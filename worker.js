@@ -3,7 +3,6 @@
 // ================================================================
 
 import { HTML_PAGE } from './src/app.js';
-import { CSS_STYLE } from './src/style.js';
 import { JS_CODE } from './src/script.js';
 import {
     handleRegister,
@@ -42,12 +41,6 @@ export default {
         }
 
         try {
-            if (path === '/ui/style.css' && method === 'GET') {
-                return new Response(CSS_STYLE, {
-                    headers: { 'Content-Type': 'text/css; charset=utf-8' },
-                });
-            }
-
             if (path === '/ui/script.js' && method === 'GET') {
                 return new Response(JS_CODE, {
                     headers: { 'Content-Type': 'application/javascript; charset=utf-8' },
