@@ -18,6 +18,28 @@
       "status": "completed",
       "createdAt": "2026-08-07T16:15:14.906Z",
       "updatedAt": "2026-08-07T16:15:39.996Z"
+    },
+    {
+      "id": "f25ff5aa-1df8-45a4-b9fd-d78be6fde277",
+      "title": "google",
+      "description": "ffff",
+      "date": "2026-09-18",
+      "start": "03:00",
+      "end": "10:00",
+      "notes": "",
+      "alert": "now",
+      "notifyVia": [
+        "telegram"
+      ],
+      "color": "#3f00d1",
+      "type": "work",
+      "status": "pending",
+      "calendar": "work",
+      "location": "b",
+      "guests": "team@chrona.app",
+      "recurrence": "none",
+      "createdAt": "2026-08-09T13:25:26.126Z",
+      "updatedAt": "2026-08-09T13:25:26.126Z"
     }
   ],
   "createdAt": "2026-08-01T21:15:37.616Z"
