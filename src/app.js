@@ -11,6 +11,23 @@ export const HTML_PAGE = `<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <!-- تحميل Tailwind CSS ضروري جداً لكي تعمل الكلاسات -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['Space Grotesk', 'sans-serif'],
+              sans: ['DM Sans', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+
     <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body class="dark:bg-[#0a0a12] bg-slate-50 text-slate-900 dark:text-slate-100 overflow-hidden h-screen flex flex-col">
