@@ -418,17 +418,7 @@ export async function handleAdminToggleAdmin(request, env, username) {
   return jsonResponse({ success: true });
 }
 
-export async function handleAdminGetAllEvents(request, env) {
-  const users = await getAllUsers(env);
-  let allEvents = [];
-  for (const username of Object.keys(users)) {
-    const dashboard = await getUserDashboard(env, username);
-    if (dashboard?.tasks) {
-      dashboard.tasks.forEach((task) => { allEvents.push({ ...migrateEvent(task), user: username }); });
-    }
-  }
-  return jsonResponse(allEvents);
-}
+
 
 export async function getAllUsers(env) {
   const { content, exists } = await githubGetFile(env, "users/allusers.json");
