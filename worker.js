@@ -19,11 +19,12 @@ import {
     handleAdminDeleteUser,
     handleAdminToggleAdmin,
     handleAdminGetAllEvents,
+    handleUpdateProfile,
+    handleUpdatePassword,
     getAllUsers,
 } from './src/handlers.js';
 import { jsonResponse } from './src/helpers.js';
 
-// روابط ملفات GitHub
 const GITHUB_CSS_URL = 'https://raw.githubusercontent.com/bergham123/style-js/refs/heads/main/chroma/style.css';
 const GITHUB_JS_URL = 'https://raw.githubusercontent.com/bergham123/style-js/refs/heads/main/chroma/script.js';
 
@@ -44,94 +45,54 @@ export default {
         }
 
         try {
-            // ===== Proxy لملفات الـ CSS و JS من GitHub =====
             if (path === '/assets/style.css' && method === 'GET') {
                 const res = await fetch(GITHUB_CSS_URL);
                 if (!res.ok) return jsonResponse({ error: 'Failed to fetch CSS' }, 502);
-                const cssText = await res.text();
-                return new Response(cssText, {
-                    headers: { 
-                        'Content-Type': 'text/css; charset=utf-8',
-                        'Cache-Control': 'public, max-age=3600' // تخزين مؤقت لمدة ساعة
-                    },
-                });
+                return new Response(await res.text(), { headers: { 'Content-Type': 'text/css; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
             }
 
             if (path === '/assets/script.js' && method === 'GET') {
                 const res = await fetch(GITHUB_JS_URL);
                 if (!res.ok) return jsonResponse({ error: 'Failed to fetch JS' }, 502);
-                const jsText = await res.text();
-                return new Response(jsText, {
-                    headers: { 
-                        'Content-Type': 'application/javascript; charset=utf-8',
-                        'Cache-Control': 'public, max-age=3600' // تخزين مؤقت لمدة ساعة
-                    },
-                });
+                return new Response(await res.text(), { headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
             }
 
-            // ===== HTML الصفحة الرئيسية =====
             if ((path === '/' || path === '/ui') && method === 'GET') {
-                return new Response(HTML_PAGE, {
-                    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-                });
+                return new Response(HTML_PAGE, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
             }
 
-            // ===== مسارات المصادقة =====
             if (path === '/auth/register' && method === 'POST') return handleRegister(request, env);
             if (path === '/auth/login' && method === 'POST') return handleLogin(request, env);
             if (path === '/auth/verify' && method === 'POST') return handleVerify(request, env);
             if (path === '/auth/reset-request' && method === 'POST') return handleRequestReset(request, env);
             if (path === '/auth/reset' && method === 'POST') return handleResetPassword(request, env);
 
-            // ===== مسارات محمية =====
             const username = request.headers.get('X-Username');
-            if (!username && (path.startsWith('/events') || path.startsWith('/dashboard') || path.startsWith('/admin'))) {
+            if (!username && (path.startsWith('/events') || path.startsWith('/dashboard') || path.startsWith('/admin') || path.startsWith('/user'))) {
                 return jsonResponse({ error: 'Authentication required' }, 401);
             }
 
+            // مسارات المهام
             if (path === '/events' && method === 'GET') return handleGetEvents(request, env, username);
             if (path === '/events' && method === 'POST') return handleCreateEvent(request, env, username);
-            
-            if (path.startsWith('/events/') && method === 'PUT') {
-                const eventId = path.split('/')[2];
-                return handleUpdateEvent(request, env, username, eventId);
-            }
-            
-            if (path.startsWith('/events/') && method === 'DELETE') {
-                const eventId = path.split('/')[2];
-                return handleDeleteEvent(request, env, username, eventId);
-            }
+            if (path.startsWith('/events/') && method === 'PUT') return handleUpdateEvent(request, env, username, path.split('/')[2]);
+            if (path.startsWith('/events/') && method === 'DELETE') return handleDeleteEvent(request, env, username, path.split('/')[2]);
+            if (path.startsWith('/events/date/') && method === 'GET') return handleGetEventsByDate(request, env, path.split('/')[3]);
+            if (path.startsWith('/dashboard/') && method === 'GET') return handleGetDashboard(request, env, path.split('/')[2]);
 
-            if (path.startsWith('/events/date/') && method === 'GET') {
-                const date = path.split('/')[3];
-                return handleGetEventsByDate(request, env, date);
-            }
+            // مسارات الملف الشخصي الجديدة
+            if (path === '/user/profile' && method === 'PUT') return handleUpdateProfile(request, env, username);
+            if (path === '/user/password' && method === 'PUT') return handleUpdatePassword(request, env, username);
 
-            if (path.startsWith('/dashboard/') && method === 'GET') {
-                const user = path.split('/')[2];
-                return handleGetDashboard(request, env, user);
-            }
-
-            // ===== مسارات المشرف =====
+            // مسارات المشرف
             if (path.startsWith('/admin/')) {
                 const users = await getAllUsers(env);
                 const user = users[username];
-                if (!user || !user.isAdmin) {
-                    return jsonResponse({ error: 'Forbidden' }, 403);
-                }
+                if (!user || !user.isAdmin) return jsonResponse({ error: 'Forbidden' }, 403);
 
                 if (path === '/admin/users' && method === 'GET') return handleAdminGetUsers(request, env);
-                
-                if (path.startsWith('/admin/users/') && method === 'DELETE') {
-                    const userToDelete = path.split('/')[3];
-                    return handleAdminDeleteUser(request, env, userToDelete);
-                }
-                
-                if (path.startsWith('/admin/users/') && path.endsWith('/admin') && method === 'PUT') {
-                    const userToToggle = path.split('/')[3];
-                    return handleAdminToggleAdmin(request, env, userToToggle);
-                }
-                
+                if (path.startsWith('/admin/users/') && method === 'DELETE') return handleAdminDeleteUser(request, env, path.split('/')[3]);
+                if (path.startsWith('/admin/users/') && path.endsWith('/admin') && method === 'PUT') return handleAdminToggleAdmin(request, env, path.split('/')[3]);
                 if (path === '/admin/events' && method === 'GET') return handleAdminGetAllEvents(request, env);
             }
 
