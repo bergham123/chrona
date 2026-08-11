@@ -49,6 +49,12 @@ export function validatePassword(password) {
   return null;
 }
 
+export function validateEmail(email) {
+  if (!email || typeof email !== "string") return "Email is required";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Invalid email format";
+  return null;
+}
+
 export function validateEventTitle(title) {
   if (!title || typeof title !== "string") return "Event title is required";
   if (title.trim().length === 0) return "Event title cannot be empty";
@@ -85,7 +91,7 @@ export async function sendTelegramMessage(env, chatId, text) {
 
 // Migrate old task format to new event format if needed
 export function migrateEvent(oldTask) {
-  if (oldTask.start && !oldTask.time) return oldTask; // Already new format
+  if (oldTask.start && !oldTask.time) return oldTask;
   return {
     id: oldTask.id || generateId(),
     title: oldTask.title || "Untitled",
@@ -104,6 +110,6 @@ export function migrateEvent(oldTask) {
     type: oldTask.type || oldTask.calendar || "work",
     status: oldTask.status || "pending",
     createdAt: oldTask.createdAt || new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    updatedAt: oldTask.updatedAt || new Date().toISOString(),
   };
 }
