@@ -14,5 +14,13 @@
     "createdAt": "2026-08-11T19:18:50.950Z",
     "isActive": false,
     "isAdmin": false
+  },
+  "mohamed": {
+    "username": "mohamed",
+    "passwordHash": "15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225",
+    "telegramId": "123123",
+    "createdAt": "2026-08-11T20:11:34.035Z",
+    "isActive": false,
+    "isAdmin": false
   }
 }
