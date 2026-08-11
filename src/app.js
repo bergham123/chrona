@@ -12,7 +12,6 @@ export const HTML_PAGE = `<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;700;800&display=swap" rel="stylesheet">
     
-    <!-- تحميل Tailwind CSS ضروري جداً لكي تعمل الكلاسات -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -105,25 +104,12 @@ export const HTML_PAGE = `<!DOCTYPE html>
             localStorage.removeItem('chrona_user');
             location.reload();
         });
+        
+        // استدعال دالة المودال من ملف الـ JS الخارجي
         document.getElementById('avatarBtn').addEventListener('click', () => {
-            const username = localStorage.getItem('chrona_user') || 'User';
-            document.querySelector('#modalRoot').innerHTML = \`
-                <div class="modal-backdrop">
-                    <div class="modal-card !max-w-sm">
-                        <div class="flex items-center gap-3">
-                            <button class="avatar">\${username.slice(0,2).toUpperCase()}</button>
-                            <div>
-                                <h2 class="font-display text-xl font-bold">\${username}</h2>
-                                <p class="text-sm text-slate-400">Personal Account</p>
-                            </div>
-                        </div>
-                        <p class="mt-5 rounded-xl bg-violet-500/10 p-3 text-xs leading-5 text-slate-500 dark:text-slate-400">Your calendar data is synced with the server securely.</p>
-                        <button class="secondary danger mt-5 w-full" onclick="localStorage.removeItem('chrona_user');location.reload();">Sign out</button>
-                        <button class="secondary mt-2 w-full" data-close>Close</button>
-                    </div>
-                </div>\`;
-            document.querySelector('[data-close]').onclick = () => document.querySelector('#modalRoot').innerHTML = '';
-            document.querySelector('.modal-backdrop').onclick = e => { if(e.target.classList.contains('modal-backdrop')) document.querySelector('#modalRoot').innerHTML = ''; };
+            if (typeof openAccountModal === 'function') {
+                openAccountModal();
+            }
         });
     </script>
 </body>
