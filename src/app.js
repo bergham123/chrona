@@ -1,5 +1,5 @@
 // ================================================================
-// src/app.js
+// src/app.js - HTML Page Template
 // ================================================================
 
 export const HTML_PAGE = `<!DOCTYPE html>
@@ -7,7 +7,7 @@ export const HTML_PAGE = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chrona - Calendar</title>
+    <title>Chrona - Calendar & Tasks</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;700;800&display=swap" rel="stylesheet">
@@ -100,13 +100,12 @@ export const HTML_PAGE = `<!DOCTYPE html>
 
     <script src="/assets/script.js"></script>
     <script>
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
             localStorage.removeItem('chrona_user');
             location.reload();
         });
         
-        // استدعال دالة المودال من ملف الـ JS الخارجي
-        document.getElementById('avatarBtn').addEventListener('click', () => {
+        document.getElementById('avatarBtn')?.addEventListener('click', () => {
             if (typeof openAccountModal === 'function') {
                 openAccountModal();
             }
