@@ -15,6 +15,7 @@ import {
     handleAdminGetAllEvents,
     handleUpdateProfile,
     handleUpdatePassword,
+    getAllUsers,   // <-- تم استيراده مباشرة
 } from './src/handlers.js';
 import { jsonResponse } from './src/helpers.js';
 
@@ -78,7 +79,6 @@ export default {
 
             // المدير
             if (path.startsWith('/admin/')) {
-                const { getAllUsers } = await import('./src/handlers.js');
                 const users = await getAllUsers(env);
                 const user = users[username];
                 if (!user || !user.isAdmin) return jsonResponse({ error: 'Forbidden' }, 403);
@@ -95,4 +95,4 @@ export default {
             return jsonResponse({ error: error.message || 'Internal server error' }, 500);
         }
     },
-};S
+};
