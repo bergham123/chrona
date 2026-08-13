@@ -15,5 +15,14 @@
     "phone": "+212642284241",
     "createdAt": "2026-08-13T20:05:19.834Z",
     "isAdmin": false
+  },
+  "admin": {
+    "username": "admin",
+    "fullName": "admin",
+    "email": "ben@gmail.com",
+    "passwordHash": "ea33ccd0003a96d66d3f71c97772c2b9d10848f27c7a23a4ce02c49a83f67081",
+    "phone": "0607301499",
+    "createdAt": "2026-08-13T20:28:29.568Z",
+    "isAdmin": true
   }
 }
