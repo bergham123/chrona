@@ -1,9 +1,15 @@
-// assets/script.js - نسخة بدون Telegram مع مودال الملف الشخصي
+// assets/script.js - نسخة مُصحَّحة بالكامل
 (() => {
   'use strict';
   const $ = (s, r=document) => r.querySelector(s), $$ = (s,r=document) => [...r.querySelectorAll(s)];
   const pad=n=>String(n).padStart(2,'0'), iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  const parseDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+  const parseDate=s=>{
+    if (!s || typeof s !== 'string') return new Date();
+    const parts = s.split('-');
+    if (parts.length !== 3) return new Date();
+    const [y,m,d] = parts.map(Number);
+    return new Date(y, m-1, d);
+  };
   const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
   const startWeek=d=>addDays(d,-((d.getDay()+6)%7));
   const sameDay=(a,b)=>iso(a)===iso(b), esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -248,25 +254,95 @@
     $('#calendarView').innerHTML = '<div class="agenda">' + events.map(e => { const d = e.date !== last ? (last = e.date, `<div class="agenda-date">${fmt(parseDate(e.date), { weekday: 'long', month: 'long', day: 'numeric' })}</div>`) : ''; const c = e.color ? [e.color, e.color + '22', e.color] : colors[e.calendar]; return `${d}<button class="agenda-card w-full text-left" data-action="event" data-id="${e.id}"><span class="h-11 w-1 rounded-full" style="background:${c[0]}"></span><span class="w-20 text-xs font-bold text-slate-400">${e.start}</span><span class="min-w-0 flex-1"><strong class="block truncate">${esc(e.title)}</strong><small class="text-slate-400">${esc(e.location || e.calendar)}</small></span><span class="text-slate-400">›</span></button>`; }).join('') + '</div>';
   }
 
+  // ---- فتح نافذة الحدث (مع إصلاح الأزرار) ----
   function openEvent(event = {}) {
     const isEdit = !!event.id;
     $('#modalRoot').innerHTML = `<div class="modal-backdrop"><form id="eventForm" class="modal-card"><div class="mb-6 flex items-start justify-between"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-violet-500">${isEdit ? 'Event details' : 'New moment'}</p><h2 class="font-display mt-1 text-2xl font-bold">${isEdit ? 'Edit event' : 'Create an event'}</h2></div><button type="button" class="icon-btn" data-close>✕</button></div><div class="space-y-4"><div><label class="field-label">Title</label><input class="field text-lg font-semibold" name="title" required autofocus value="${esc(event.title || '')}" placeholder="What’s happening?" /></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-3"><div><label class="field-label">Date</label><input class="field" type="date" name="date" required value="${event.date || state.cursor}" /></div><div><label class="field-label">Starts</label><input class="field" type="time" name="start" required value="${event.start || '09:00'}" /></div><div><label class="field-label">Ends</label><input class="field" type="time" name="end" required value="${event.end || '10:00'}" /></div></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-3"><div><label class="field-label">Calendar</label><select class="field capitalize" name="calendar">${Object.keys(colors).map(k => `<option ${event.calendar === k ? 'selected' : ''} value="${k}">${k}</option>`).join('')}</select></div><div><label class="field-label">Status</label><select class="field" name="status">${['pending', 'in-progress', 'completed'].map(k => `<option ${event.status === k ? 'selected' : ''} value="${k}">${k}</option>`).join('')}</select></div><div><label class="field-label">Repeat</label><select class="field" name="recurrence">${['none', 'daily', 'weekly', 'monthly', 'yearly'].map(k => `<option ${event.recurrence === k ? 'selected' : ''} value="${k}">${k === 'none' ? 'Does not repeat' : `Repeats ${k}`}</option>`).join('')}</select></div></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-2"><div><label class="field-label">Alert</label><select class="field" name="alert">${[['now', 'Immediate'], ['10min', '10 min before'], ['1hour', '1 hour before'], ['1day', '1 day before']].map(([v, l]) => `<option ${event.alert === v ? 'selected' : ''} value="${v}">${l}</option>`).join('')}</select></div><div><label class="field-label">Custom Color</label><input class="field !p-1 !h-10" type="color" name="color" value="${event.color || '#8b5cf6'}" /></div></div><div><label class="field-label">Location / call link</label><input class="field" name="location" value="${esc(event.location || '')}" placeholder="Add a place or URL" /></div><div><label class="field-label">Guests</label><input class="field" name="guests" value="${esc(event.guests || '')}" placeholder="Emails, separated by commas" /></div><div><label class="field-label">Description</label><textarea class="field min-h-[60px] resize-y" name="description" placeholder="Brief description">${esc(event.description || '')}</textarea></div><div><label class="field-label">Notes</label><textarea class="field min-h-[60px] resize-y" name="notes" placeholder="Add context, links, or an agenda">${esc(event.notes || '')}</textarea></div></div><div class="mt-6 flex flex-wrap items-center gap-2">${isEdit ? '<button type="button" id="deleteEvent" class="secondary danger">Delete</button>' : ''}<span class="flex-1"></span><button type="button" class="secondary" data-close>Cancel</button><button class="primary" type="submit">${isEdit ? 'Save changes' : 'Create event'}</button></div></form></div>`;
-    const root = $('.modal-backdrop'); $$('[data-close]', root).forEach(b => b.onclick = closeModal); root.onclick = e => { if (e.target === root) closeModal(); };
+    const root = $('.modal-backdrop');
+    $$('[data-close]', root).forEach(b => b.onclick = closeModal);
+    root.onclick = e => { if (e.target === root) closeModal(); };
     $('#eventForm').onsubmit = async e => { e.preventDefault(); const o = Object.fromEntries(new FormData(e.target)); if (o.end <= o.start && o.end !== '00:00') return toast('End time must be after start time'); const payload = { title: o.title, date: o.date, start: o.start, end: o.end, calendar: o.calendar, status: o.status, recurrence: o.recurrence, alert: o.alert, color: o.color, location: o.location, guests: o.guests, description: o.description, notes: o.notes }; try { let updatedEvent; if (isEdit) { updatedEvent = (await apiCall(`/events/${event.id}`, 'PUT', payload)).event; state.events = state.events.map(x => x.id === event.id ? updatedEvent : x); } else { updatedEvent = (await apiCall('/events', 'POST', payload)).event; state.events.push(updatedEvent); } closeModal(); render(); toast(isEdit ? 'Event updated' : 'Event created ✨'); } catch (err) { toast(err.message); } };
-    if (isEdit) { $('#deleteEvent').onclick = async () => { try { await apiCall(`/events/${event.id}`, 'DELETE'); state.events = state.events.filter(x => x.id !== event.id); closeModal(); render(); toast('Event deleted'); } catch (err) { toast(err.message); } }; }
+    if (isEdit) {
+      $('#deleteEvent').onclick = async () => {
+        try {
+          await apiCall(`/events/${event.id}`, 'DELETE');
+          state.events = state.events.filter(x => x.id !== event.id);
+          closeModal();
+          render();
+          toast('Event deleted');
+        } catch (err) { toast(err.message); }
+      };
+    }
     setTimeout(() => $('#eventForm [autofocus]')?.focus(), 50);
   }
 
-  // ---- باقي الدوال (بحث، أدوات، مدير، تصدير، استيراد، إلخ) ----
-  function openSearch() { /* تبقى كما هي من النسخة السابقة */ }
-  function openMore() { /* تبقى كما هي */ }
-  async function openAdmin() { /* تبقى كما هي */ }
-  function exportJson() { /* ... */ }
-  function exportIcs() { /* ... */ }
-  function download(name, text, type) { /* ... */ }
-  async function importFile(e) { /* ... */ }
-  function updateInsight() { /* ... */ }
-  function closeModal() { $('#modalRoot').innerHTML = ''; }
+  // ---- البحث ----
+  function openSearch() {
+    const events = shownEvents();
+    $('#modalRoot').innerHTML = `<div class="modal-backdrop"><div class="modal-card !max-w-[680px] !p-3"><div class="flex items-center gap-3 border-b border-slate-200 p-3 dark:border-white/10"><span class="text-xl text-violet-500">⌕</span><input id="searchInput" class="min-w-0 flex-1 bg-transparent text-lg outline-none" placeholder="Search title, guest, location or notes…" autofocus/><button class="icon-btn" data-close>✕</button></div><div id="searchResults" class="max-h-[55vh] overflow-auto p-2"></div><div class="flex items-center gap-3 border-t border-slate-200 p-3 text-[10px] text-slate-400 dark:border-white/10"><kbd>↑↓</kbd> Navigate <kbd>↵</kbd> Open <span class="ml-auto">${events.length} events</span></div></div></div>`;
+    let active = 0, filtered = events;
+    const draw = () => { $('#searchResults').innerHTML = filtered.length ? filtered.slice(0, 20).map((e, i) => { const c = e.color ? [e.color, e.color + '22', e.color] : colors[e.calendar]; return `<button class="search-item ${i === active ? 'active' : ''}" data-result="${e.id}"><span class="dot" style="background:${c[0]}"></span><span class="min-w-0 flex-1"><strong class="block truncate">${esc(e.title)}</strong><small class="text-slate-400">${fmt(parseDate(e.date), { month: 'short', day: 'numeric' })} · ${e.start} · ${esc(e.location || e.calendar)}</small></span><span>›</span></button>`; }).join('') : '<div class="p-10 text-center text-slate-400">No matching events</div>'; $$('[data-result]').forEach(b => b.onclick = () => { closeModal(); openEvent(state.events.find(e => e.id === b.dataset.result)); }); };
+    draw();
+    $('#searchInput').oninput = e => { const q = e.target.value.toLowerCase(); filtered = events.filter(x => [x.title, x.location, x.notes, x.guests, x.calendar].join(' ').toLowerCase().includes(q)); active = 0; draw(); };
+    $('#searchInput').onkeydown = e => { if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(active + 1, filtered.length - 1); draw(); } if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(active - 1, 0); draw(); } if (e.key === 'Enter' && filtered[active]) { e.preventDefault(); closeModal(); openEvent(filtered[active]); } };
+    $$('[data-close]').forEach(x => x.onclick = closeModal); $('.modal-backdrop').onclick = e => { if (e.target.classList.contains('modal-backdrop')) closeModal(); };
+    setTimeout(() => $('#searchInput').focus(), 20);
+  }
+
+  // ---- الأدوات ----
+  function openMore() {
+    $('#modalRoot').innerHTML = `<div class="modal-backdrop"><div class="modal-card !max-w-sm"><h2 class="font-display mb-4 text-xl font-bold">Calendar tools</h2><div class="grid gap-2"><button id="exportJson" class="secondary text-left">↓ Export backup (.json)</button><button id="exportIcs" class="secondary text-left">↓ Export calendar (.ics)</button><button id="importBtn" class="secondary text-left">↑ Import JSON / ICS</button><button id="notifyBtn" class="secondary text-left">♢ Enable notifications</button><button id="shortcuts" class="secondary text-left">⌨ Keyboard shortcuts</button></div><button class="secondary mt-5 w-full" data-close>Close</button></div></div>`;
+    $('#exportJson').onclick = exportJson; $('#exportIcs').onclick = exportIcs; $('#importBtn').onclick = () => $('#importFile').click(); $('#notifyBtn').onclick = requestNotify; $('#shortcuts').onclick = () => toast('C create · T today · ←/→ navigate · ⌘K search');
+    $$('[data-close]').forEach(x => x.onclick = closeModal); $('.modal-backdrop').onclick = e => { if (e.target.classList.contains('modal-backdrop')) closeModal(); };
+  }
+
+  // ---- لوحة المدير ----
+  async function openAdmin() {
+    try {
+      const users = await apiCall('/admin/users');
+      $('#modalRoot').innerHTML = `<div class="modal-backdrop"><div class="modal-card !max-w-lg"><div class="flex items-center justify-between mb-6"><h2 class="font-display text-xl font-bold">Admin Panel</h2><button class="icon-btn" data-close>✕</button></div><div id="adminUserList"></div><button class="secondary mt-5 w-full" data-close>Close</button></div></div>`;
+      $('#adminUserList').innerHTML = users.map(u => `<div class="admin-user-card" data-username="${u.username}"><div><strong class="block">${esc(u.username)}</strong><small class="text-slate-400">TG: ${u.telegramId} · ${u.isActive ? '✅' : '❌'}</small></div><div>${u.isAdmin ? '👑' : ''}</div></div>`).join('');
+      $$('.admin-user-card').forEach(card => { card.onclick = async () => { try { const data = await apiCall(`/dashboard/${card.dataset.username}`); $('#adminUserList').innerHTML = `<button class="secondary mb-4" id="backToUsers">← Back to users</button><h3 class="font-display text-lg font-bold mb-2">Data for ${esc(card.dataset.username)}</h3><div class="json-viewer">${esc(JSON.stringify(data, null, 2))}</div>`; $('#backToUsers').onclick = () => openAdmin(); } catch (err) { toast(err.message); } }; });
+      $$('[data-close]').forEach(x => x.onclick = closeModal); $('.modal-backdrop').onclick = e => { if (e.target.classList.contains('modal-backdrop')) closeModal(); };
+    } catch (err) { toast(err.message); }
+  }
+
+  // ---- تصدير واستيراد ----
+  function exportJson() { download('chrona-backup.json', JSON.stringify({ version: 1, events: state.events }, null, 2), 'application/json'); toast('Backup exported'); }
+  function exportIcs() { const out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Chrona//Calendar//EN', ...state.events.flatMap(e => ['BEGIN:VEVENT', `UID:${e.id}@chrona`, `DTSTART:${e.date.replaceAll('-', '')}T${e.start.replace(':', '')}00`, `DTEND:${e.date.replaceAll('-', '')}T${e.end.replace(':', '')}00`, `SUMMARY:${e.title.replaceAll(',', '\\,')}`, `LOCATION:${(e.location || '').replaceAll(',', '\\,')}`, `DESCRIPTION:${(e.notes || '').replaceAll('\n', '\\n')}`, 'END:VEVENT']), 'END:VCALENDAR'].join('\r\n'); download('chrona-calendar.ics', out, 'text/calendar'); toast('Calendar exported'); }
+  function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); URL.revokeObjectURL(a.href); }
+
+  async function importFile(e) {
+    const f = e.target.files[0]; if (!f) return;
+    try { const text = await f.text(); if (f.name.endsWith('.json')) { const d = JSON.parse(text); if (!Array.isArray(d.events)) throw Error(); for (const ev of d.events) { await apiCall('/events', 'POST', { ...ev, id: uid() }); } } else { const blocks = text.split('BEGIN:VEVENT').slice(1); for (const b of blocks) { const get = k => (b.match(new RegExp(`${k}:(.*)`)) || [])[1]?.trim() || ''; const ds = get('DTSTART'); await apiCall('/events', 'POST', { title: get('SUMMARY') || 'Imported', date: `${ds.slice(0, 4)}-${ds.slice(4, 6)}-${ds.slice(6, 8)}`, start: `${ds.slice(9, 11) || '09'}:${ds.slice(11, 13) || '00'}`, end: '10:00', calendar: 'work', location: get('LOCATION'), notes: get('DESCRIPTION') }); } } await loadEvents(); closeModal(); render(); toast('Events imported'); } catch { toast('Could not import file'); }
+    e.target.value = '';
+  }
+
+  async function requestNotify() { if (!('Notification' in window)) return toast('Notifications not supported'); const p = await Notification.requestPermission(); toast(p === 'granted' ? 'Notifications enabled' : 'Permission denied'); }
+
+  function updateInsight() { const w = startWeek(new Date()), count = state.events.filter(e => { const d = parseDate(e.date); return d >= w && d <= addDays(w, 6); }).length; $('#focusInsight').textContent = count > 8 ? `${count} events this week. Protect a focus block.` : count > 3 ? `${count} events this week — comfortably balanced.` : 'A spacious week. Perfect for focused progress.'; }
+
+  // ---- دالة المشاركة (تم إصلاح parseDate) ----
+  function shareReminder(event, channel) {
+    if (!event || !event.date) {
+      toast('Cannot share: event missing date');
+      return;
+    }
+    const text = `Reminder: ${event.title} · ${fmt(parseDate(event.date), { weekday: 'long', month: 'short', day: 'numeric' })} at ${event.start}${event.location ? ' · ' + event.location : ''}${event.notes ? '\n' + event.notes : ''}`;
+    const url = channel === 'whatsapp' ? `https://wa.me/?text=${encodeURIComponent(text)}` : `https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'noopener,noreferrer'); toast(`${channel === 'whatsapp' ? 'WhatsApp' : 'Telegram'} reminder ready`);
+  }
+
+  // ---- تحسين مودال الحدث (إضافة أزرار المشاركة) ----
+  function enhanceEventModal(event) {
+    const form = $('#eventForm'); if (!form) return;
+    if (!event || !event.id) return;
+    const box = document.createElement('div'); box.className = 'mt-5 border-t border-slate-200 pt-5 dark:border-white/10';
+    box.innerHTML = `<p class="field-label">Share reminder</p><div class="social-reminders flex gap-2"><button type="button" class="secondary" id="whatsappReminder">◉ WhatsApp</button><button type="button" class="secondary" id="telegramReminder">➤ Telegram</button></div>`;
+    form.querySelector('.mt-6').before(box);
+    $('#whatsappReminder').onclick = () => shareReminder(event, 'whatsapp');
+    $('#telegramReminder').onclick = () => shareReminder(event, 'telegram');
+  }
 
   // ---- المصادقة المبسطة ----
   function renderAuth(mode = 'login') {
@@ -288,8 +364,34 @@
     $('#authForm').onsubmit = async (e) => { e.preventDefault(); const errEl = $('#authError'); errEl.classList.add('hidden'); const fd = Object.fromEntries(new FormData(e.target)); try { if (mode === 'login') { const data = await apiCall('/auth/login', 'POST', { username: fd.username, password: fd.password }); if (data.success) { currentUser = data.username; userProfile = data.profile; localStorage.setItem('chrona_user', currentUser); localStorage.setItem('chrona_profile', JSON.stringify(userProfile)); showApp(); } } else if (mode === 'signup') { await apiCall('/auth/register', 'POST', { username: fd.username, email: fd.email, password: fd.password, phone: fd.phone, fullName: fd.fullName }); toast('Registered successfully. Please log in.'); renderAuth('login'); } } catch (err) { errEl.textContent = err.message; errEl.classList.remove('hidden'); } };
   }
 
+  // ---- إغلاق المودال (جعلها عامة) ----
+  function closeModal() { $('#modalRoot').innerHTML = ''; }
+  window.closeModal = closeModal;   // جعلها متاحة في النطاق العام
+
+  // ---- تسجيل الخروج ----
   function logout() { currentUser = null; userProfile = {}; localStorage.removeItem('chrona_user'); localStorage.removeItem('chrona_profile'); renderAuth(); }
+
+  // ---- دالة Toast ----
   function toast(msg, undo) { const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = `${esc(msg)}${undo ? ' <button class="ml-3 font-bold text-violet-300">Undo</button>' : ''}`; if (undo) t.querySelector('button').onclick = () => { undo(); t.remove(); }; $('#toastRoot').append(t); setTimeout(() => t.remove(), undo ? 6000 : 2800); }
 
+  // ---- ربط دالة الحذف (إذا احتاجها أي زر خارجي) ----
+  // ليس هناك دالة deleteEvent منفصلة، بل يتم ربط الزر عبر onclick داخل openEvent.
+  // مع ذلك، لمنع أي خطأ، نضيف دالة فارغة عالمية:
+  window.deleteEvent = function(id) { toast('Delete via button not supported'); };
+
+  // إضافة مراقب لتحسين المودال بعد فتحه
+  new MutationObserver(() => {
+    const f = $('#eventForm');
+    if (f && !f.dataset.shareEnhanced) {
+      f.dataset.shareEnhanced = '1';
+      const eventId = f.querySelector('[name=title]')?.dataset?.eventId;
+      if (eventId) {
+        const ev = state.events.find(x => x.id === eventId);
+        if (ev) enhanceEventModal(ev);
+      }
+    }
+  }).observe($('#modalRoot'), { childList: true, subtree: true });
+
+  // بدء التشغيل
   init();
 })();
