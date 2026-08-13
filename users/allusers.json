@@ -5,7 +5,7 @@
     "telegramId": "123456789",
     "createdAt": "2026-08-13T18:30:04.867Z",
     "isActive": false,
-    "isAdmin": false
+    "isAdmin": true
   },
   "mohamed": {
     "username": "mohamed",
