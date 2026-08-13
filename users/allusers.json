@@ -6,5 +6,14 @@
     "createdAt": "2026-08-13T18:30:04.867Z",
     "isActive": false,
     "isAdmin": false
+  },
+  "mohamed": {
+    "username": "mohamed",
+    "fullName": "mohamed",
+    "email": "bergham1998@gmail.com",
+    "passwordHash": "ea33ccd0003a96d66d3f71c97772c2b9d10848f27c7a23a4ce02c49a83f67081",
+    "phone": "+212642284241",
+    "createdAt": "2026-08-13T20:05:19.834Z",
+    "isAdmin": false
   }
 }
