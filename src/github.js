@@ -1,8 +1,5 @@
-// ================================================================
-// src/github.js - GitHub API Wrapper
-// ================================================================
-
-export function ghHeaders(env) {
+// src/github.js
+function ghHeaders(env) {
   return {
     Authorization: "Bearer " + env.GITHUB_TOKEN,
     "User-Agent": "chrona-worker",
@@ -11,12 +8,21 @@ export function ghHeaders(env) {
   };
 }
 
-export function utf8ToBase64(str) {
+function utf8ToBase64(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
 
-export function base64ToUtf8(b64) {
+function base64ToUtf8(b64) {
   return decodeURIComponent(escape(atob(b64.replace(/\n/g, ""))));
+}
+
+async function fetchWithRetry(url, options, retries = 3, delay = 500) {
+  for (let i = 0; i < retries; i++) {
+    const res = await fetch(url, options);
+    if (res.ok || res.status === 404) return res;
+    if (i === retries - 1) throw new Error(`GitHub API error ${res.status}: ${await res.text()}`);
+    await new Promise(r => setTimeout(r, delay * (i + 1)));
+  }
 }
 
 export async function githubGetFile(env, path) {
@@ -30,18 +36,9 @@ export async function githubGetFile(env, path) {
     encodeURIComponent(path) +
     "?ref=" +
     branch;
-
-  const res = await fetch(url, { headers: ghHeaders(env) });
-
-  if (res.status === 404) {
-    return { content: null, sha: null, exists: false };
-  }
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GitHub GET error ${res.status}: ${text}`);
-  }
-
+  const res = await fetchWithRetry(url, { headers: ghHeaders(env) });
+  if (res.status === 404) return { content: null, sha: null, exists: false };
+  if (!res.ok) throw new Error("GitHub GET error " + res.status);
   const data = await res.json();
   return { content: base64ToUtf8(data.content), sha: data.sha, exists: true };
 }
@@ -55,26 +52,18 @@ export async function githubPutFile(env, path, contentStr, sha, message) {
     env.GITHUB_REPO +
     "/contents/" +
     encodeURIComponent(path);
-
   const body = {
     message: message || "Update " + path,
     content: utf8ToBase64(contentStr),
     branch: branch,
   };
-
   if (sha) body.sha = sha;
-
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: "PUT",
     headers: ghHeaders(env),
     body: JSON.stringify(body),
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GitHub PUT error ${res.status}: ${text}`);
-  }
-
+  if (!res.ok) throw new Error("GitHub PUT error " + res.status);
   return await res.json();
 }
 
@@ -87,23 +76,16 @@ export async function githubDeleteFile(env, path, sha, message) {
     env.GITHUB_REPO +
     "/contents/" +
     encodeURIComponent(path);
-
   const body = {
     message: message || "Delete " + path,
     sha: sha,
     branch: branch,
   };
-
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: "DELETE",
     headers: ghHeaders(env),
     body: JSON.stringify(body),
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GitHub DELETE error ${res.status}: ${text}`);
-  }
-
+  if (!res.ok) throw new Error("GitHub DELETE error " + res.status);
   return await res.json();
 }
