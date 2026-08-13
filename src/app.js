@@ -1,17 +1,13 @@
-// ================================================================
-// src/app.js - HTML Page Template
-// ================================================================
-
+// src/app.js
 export const HTML_PAGE = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chrona - Calendar & Tasks</title>
+    <title>Chrona - Calendar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;700;800&display=swap" rel="stylesheet">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -26,7 +22,6 @@ export const HTML_PAGE = `<!DOCTYPE html>
         }
       }
     </script>
-
     <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body class="dark:bg-[#0a0a12] bg-slate-50 text-slate-900 dark:text-slate-100 overflow-hidden h-screen flex flex-col">
@@ -74,6 +69,7 @@ export const HTML_PAGE = `<!DOCTYPE html>
                 <div class="flex items-center gap-2">
                     <button class="icon-btn" data-action="search">⌕</button>
                     <button class="icon-btn" id="themeIcon" data-action="theme">☾</button>
+                    <button class="icon-btn" id="profileBtn" title="Edit Profile">👤</button>
                     <button class="avatar" id="avatarBtn">CS</button>
                     <span id="avatarText" class="hidden"></span>
                 </div>
@@ -100,15 +96,16 @@ export const HTML_PAGE = `<!DOCTYPE html>
 
     <script src="/assets/script.js"></script>
     <script>
-        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('chrona_user');
+            localStorage.removeItem('chrona_profile');
             location.reload();
         });
-        
-        document.getElementById('avatarBtn')?.addEventListener('click', () => {
-            if (typeof openAccountModal === 'function') {
-                openAccountModal();
-            }
+        document.getElementById('profileBtn').addEventListener('click', () => {
+            if (typeof openProfileModal === 'function') openProfileModal();
+        });
+        document.getElementById('avatarBtn').addEventListener('click', () => {
+            if (typeof openProfileModal === 'function') openProfileModal();
         });
     </script>
 </body>
