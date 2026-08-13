@@ -19,6 +19,25 @@
       "recurrence": "none",
       "createdAt": "2026-08-13T20:08:55.195Z",
       "updatedAt": "2026-08-13T20:08:55.195Z"
+    },
+    {
+      "id": "8f25dfab-a73e-4199-98d7-962f2c4eedb5",
+      "title": "HELLO im editing",
+      "description": "hello",
+      "date": "2026-08-13",
+      "start": "09:00",
+      "end": "10:00",
+      "notes": "",
+      "alert": "10min",
+      "color": null,
+      "type": "personal",
+      "status": "pending",
+      "calendar": "personal",
+      "location": "b",
+      "guests": "",
+      "recurrence": "none",
+      "createdAt": "2026-08-13T20:08:56.916Z",
+      "updatedAt": "2026-08-13T20:08:56.916Z"
     }
   ],
   "createdAt": "2026-08-13T20:05:20.926Z"
