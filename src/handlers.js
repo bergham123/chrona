@@ -23,7 +23,8 @@ let cachedUsers = null;
 let cacheTime = 0;
 const CACHE_TTL = 60000;
 
-async function getAllUsers(env, force = false) {
+// تم تصدير هذه الدالة لاستخدامها في worker.js
+export async function getAllUsers(env, force = false) {
   if (!force && cachedUsers && (Date.now() - cacheTime) < CACHE_TTL) return cachedUsers;
   const { content, exists } = await githubGetFile(env, "users/allusers.json");
   if (!exists || !content) return {};
