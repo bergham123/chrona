@@ -1,1 +1,10 @@
-
+{
+  "bensaad": {
+    "username": "bensaad",
+    "passwordHash": "15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225",
+    "telegramId": "123456789",
+    "createdAt": "2026-08-13T18:30:04.867Z",
+    "isActive": false,
+    "isAdmin": false
+  }
+}
