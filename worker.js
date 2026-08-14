@@ -15,7 +15,7 @@ import {
     handleAdminGetAllEvents,
     handleUpdateProfile,
     handleUpdatePassword,
-    getAllUsers,   // <-- تم استيراده مباشرة
+    getAllUsers,
 } from './src/handlers.js';
 import { jsonResponse } from './src/helpers.js';
 
