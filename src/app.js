@@ -47,8 +47,11 @@ export const HTML_PAGE = `<!DOCTYPE html>
             
             <div class="space-y-2 border-t border-slate-200 dark:border-white/10 pt-4">
                 <button id="adminBtn" class="secondary w-full text-left hidden" data-action="admin">👑 Admin Panel</button>
+                <!-- ✅ FIX: was id="profileBtn" (duplicate id, only the first one in the DOM gets bound). Use data-action="profile" instead. -->
+                <button class="secondary w-full text-left" data-action="profile">👤 Account Settings</button>
                 <button class="secondary w-full text-left" data-action="more">⚙ Tools</button>
-                <button class="secondary w-full text-left danger" id="logoutBtn">↗ Sign out</button>
+                <!-- ✅ FIX: use data-action="logout" so the global click handler in script.js can pick it up too. -->
+                <button class="secondary w-full text-left danger" data-action="logout" id="logoutBtn">↗ Sign out</button>
             </div>
         </aside>
 
@@ -69,7 +72,8 @@ export const HTML_PAGE = `<!DOCTYPE html>
                 <div class="flex items-center gap-2">
                     <button class="icon-btn" data-action="search">⌕</button>
                     <button class="icon-btn" id="themeIcon" data-action="theme">☾</button>
-                    <button class="icon-btn" id="profileBtn" title="Edit Profile">👤</button>
+                    <!-- ✅ FIX: was id="profileBtn" duplicated in the sidebar; renamed to headerProfileBtn so each button has a unique id. The click is handled via data-action="profile" in script.js. -->
+                    <button class="icon-btn" id="headerProfileBtn" data-action="profile" title="Edit Profile">👤</button>
                     <button class="avatar" id="avatarBtn">CS</button>
                     <span id="avatarText" class="hidden"></span>
                 </div>
@@ -96,22 +100,11 @@ export const HTML_PAGE = `<!DOCTYPE html>
 
     <script src="/assets/script.js"></script>
     <script>
-        // ربط أزرار التطبيق الرئيسية (هذا الكود يُنفذ في المتصفح)
+        // ✅ FIX: removed the inline addEventListener logic for #profileBtn and #logoutBtn.
+        // Both are now handled by the data-action='profile' / data-action='logout' delegation
+        // in script.js, which works for ALL matching buttons (header icon + sidebar link).
+        // The avatarBtn still gets a direct handler since it has no data-action.
         document.addEventListener('DOMContentLoaded', function() {
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    localStorage.removeItem('chrona_user');
-                    localStorage.removeItem('chrona_profile');
-                    location.reload();
-                });
-            }
-            const profileBtn = document.getElementById('profileBtn');
-            if (profileBtn) {
-                profileBtn.addEventListener('click', function() {
-                    if (typeof openProfileModal === 'function') openProfileModal();
-                });
-            }
             const avatarBtn = document.getElementById('avatarBtn');
             if (avatarBtn) {
                 avatarBtn.addEventListener('click', function() {
