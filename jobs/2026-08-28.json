@@ -1,0 +1,21 @@
+[
+  {
+    "id": "0d5025df-bdc5-4180-ab33-cc4403be0568",
+    "title": "test alert desktop",
+    "description": "hello from web",
+    "date": "2026-08-28",
+    "start": "17:49",
+    "end": "16:05",
+    "notes": "",
+    "alert": "now",
+    "color": null,
+    "type": "personal",
+    "status": "pending",
+    "calendar": "personal",
+    "location": "no",
+    "guests": "",
+    "recurrence": "none",
+    "createdAt": "2026-08-28T17:47:00.027Z",
+    "updatedAt": "2026-08-28T17:47:00.027Z"
+  }
+]
