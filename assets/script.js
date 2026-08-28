@@ -28,7 +28,8 @@
 
   let currentUser = localStorage.getItem('chrona_user') || null;
   let userProfile = JSON.parse(localStorage.getItem('chrona_profile') || '{"fullName":"","email":"","phone":""}');
-  let isAdmin = false;
+  // ✅ FIX: read isAdmin from localStorage (set during login) instead of probing /admin/users
+  let isAdmin = localStorage.getItem('chrona_is_admin') === '1';
   const API_BASE = window.location.origin;
 
   let state = {
@@ -118,6 +119,8 @@
       else if (action === 'search') openSearch();
       else if (action === 'more') openMore();
       else if (action === 'admin') openAdmin();
+      else if (action === 'profile') openProfileModal();
+      else if (action === 'logout') logout();
     });
 
     document.addEventListener('keydown', e => {
@@ -138,11 +141,21 @@
     $('#appRoot').classList.remove('hidden');
     $('#avatarText').textContent = (userProfile.fullName || currentUser).slice(0, 2).toUpperCase();
     await loadEvents();
-    try {
-      await apiCall('/admin/users');
-      isAdmin = true;
-      $('#adminBtn').classList.remove('hidden');
-    } catch { isAdmin = false; $('#adminBtn').classList.add('hidden'); }
+
+    // ✅ FIX: use isAdmin from localStorage (set at login) instead of probing /admin/users.
+    // The probe was returning 403 for every non-admin user and flooding the console.
+    // For backward-compat with sessions created before this fix (no chrona_is_admin key),
+    // we do ONE silent probe to backfill the value.
+    if (localStorage.getItem('chrona_is_admin') === null) {
+      try {
+        await apiCall('/admin/users');
+        isAdmin = true;
+      } catch { isAdmin = false; }
+      localStorage.setItem('chrona_is_admin', isAdmin ? '1' : '0');
+    }
+    const adminBtn = $('#adminBtn');
+    if (adminBtn) adminBtn.classList.toggle('hidden', !isAdmin);
+
     render();
   }
 
@@ -393,7 +406,7 @@
       });
     }
   }
-  window.openProfileModal = openProfileModal;
+  // (openProfileModal is also exposed globally below, next to closeModal/deleteEvent)
 
   // ---- مودال إنشاء/تعديل الحدث (مع ربط آمن) ----
   function openEvent(event = {}) {
@@ -729,6 +742,24 @@
   }
   window.closeModal = closeModal;
 
+  // ✅ FIX: expose a GLOBAL deleteEvent(eventId) function so inline onclick="deleteEvent('...')" works.
+  // Also keeps the existing <button id="deleteEvent"> + addEventListener pattern working.
+  async function deleteEvent(eventId) {
+    if (!eventId) return toast('No event selected');
+    if (!confirm('Delete this event? This cannot be undone.')) return;
+    try {
+      await apiCall(`/events/${eventId}`, 'DELETE');
+      state.events = state.events.filter(x => x.id !== eventId);
+      closeModal();
+      render();
+      toast('Event deleted');
+    } catch (err) { toast(err.message); }
+  }
+  window.deleteEvent = deleteEvent;
+
+  // ✅ FIX: expose openProfileModal globally (already present but re-asserted here for clarity)
+  window.openProfileModal = () => openProfileModal();
+
   // ---- المصادقة ----
   function renderAuth(mode = 'login') {
     $('#appRoot').classList.add('hidden');
@@ -780,8 +811,11 @@
             if (data.success) {
               currentUser = data.username;
               userProfile = data.profile;
+              // ✅ FIX: persist isAdmin from the login response so we don't need to probe /admin/users
+              isAdmin = !!data.isAdmin;
               localStorage.setItem('chrona_user', currentUser);
               localStorage.setItem('chrona_profile', JSON.stringify(userProfile));
+              localStorage.setItem('chrona_is_admin', isAdmin ? '1' : '0');
               showApp();
             }
           } else if (mode === 'signup') {
@@ -806,8 +840,10 @@
   function logout() {
     currentUser = null;
     userProfile = {};
+    isAdmin = false;
     localStorage.removeItem('chrona_user');
     localStorage.removeItem('chrona_profile');
+    localStorage.removeItem('chrona_is_admin');
     renderAuth();
   }
 
