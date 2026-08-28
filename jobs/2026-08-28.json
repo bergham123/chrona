@@ -4,7 +4,7 @@
     "title": "test alert desktop",
     "description": "hello from web",
     "date": "2026-08-28",
-    "start": "17:49",
+    "start": "18:10",
     "end": "19:08",
     "notes": "",
     "alert": "now",
@@ -16,6 +16,6 @@
     "guests": "",
     "recurrence": "none",
     "createdAt": "2026-08-28T17:47:00.027Z",
-    "updatedAt": "2026-08-28T18:08:36.677Z"
+    "updatedAt": "2026-08-28T18:09:10.560Z"
   }
 ]
